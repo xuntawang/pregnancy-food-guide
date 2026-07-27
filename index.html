@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#163f3b">
+  <meta name="description" content="面向孕早期家庭的常见食物安全速查工具">
+  <title>孕期饮食速查｜常见食物能不能吃</title>
+  <style>
+    :root {
+      --ink: #17312f;
+      --muted: #60716e;
+      --paper: #f6f8f3;
+      --surface: #ffffff;
+      --line: #dce4dc;
+      --brand: #163f3b;
+      --brand-soft: #e3efea;
+      --safe: #19724f;
+      --safe-soft: #e7f5ed;
+      --limit: #a05b00;
+      --limit-soft: #fff3dc;
+      --avoid: #a53b32;
+      --avoid-soft: #fbeae7;
+      --focus: #1677c8;
+      --shadow: 0 16px 40px rgba(25, 56, 49, .08);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(173, 212, 190, .34), transparent 28rem),
+        var(--paper);
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+      line-height: 1.6;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+    a { color: #0b655b; text-underline-offset: 3px; }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+    }
+
+    .skip-link {
+      position: fixed;
+      z-index: 20;
+      top: 8px;
+      left: 8px;
+      padding: 8px 12px;
+      transform: translateY(-150%);
+      background: var(--surface);
+      border-radius: 8px;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      padding: 22px 0 12px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      color: white;
+      background: var(--brand);
+      border-radius: 11px 11px 11px 3px;
+      font-family: Georgia, serif;
+      font-size: 19px;
+    }
+
+    .hero {
+      padding: 28px 0 18px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr);
+      gap: 32px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--safe);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+
+    h1 {
+      max-width: 780px;
+      margin: 0;
+      font-family: "Songti SC", "STSong", Georgia, serif;
+      font-size: clamp(40px, 7vw, 76px);
+      font-weight: 700;
+      letter-spacing: -.055em;
+      line-height: 1.08;
+    }
+
+    .hero-copy {
+      max-width: 680px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .hero-note {
+      margin: 0;
+      padding: 18px 20px;
+      color: #31534f;
+      background: rgba(255,255,255,.66);
+      border: 1px solid rgba(139, 168, 157, .35);
+      border-radius: 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-note strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--brand);
+    }
+
+    .search-panel {
+      position: sticky;
+      z-index: 10;
+      top: 8px;
+      margin: 18px 0 22px;
+      padding: 14px;
+      background: rgba(255, 255, 255, .92);
+      border: 1px solid rgba(198, 211, 201, .8);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+    }
+
+    .search-icon {
+      position: absolute;
+      top: 50%;
+      left: 18px;
+      color: #66807b;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 58px;
+      padding: 0 50px;
+      color: var(--ink);
+      background: #f6f8f5;
+      border: 1px solid #cfdbd2;
+      border-radius: 15px;
+      font-size: 17px;
+      transition: border-color .2s, background .2s;
+    }
+
+    .search-input:focus {
+      background: white;
+      border-color: #5d9685;
+    }
+
+    .clear-search {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: none;
+      place-items: center;
+      background: transparent;
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      transform: translateY(-50%);
+    }
+
+    .clear-search.visible { display: grid; }
+    .clear-search:hover { background: #e8eeea; }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filters::-webkit-scrollbar { display: none; }
+
+    .filter-button,
+    .category-button {
+      flex: 0 0 auto;
+      min-height: 38px;
+      padding: 7px 13px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .filter-button[aria-pressed="true"] {
+      color: white;
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+
+    .category-bar {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 22px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .category-bar::-webkit-scrollbar { display: none; }
+    .category-button { background: transparent; }
+
+    .category-button[aria-pressed="true"] {
+      color: var(--brand);
+      background: var(--brand-soft);
+      border-color: #8eb7aa;
+    }
+
+    .results-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 15px;
+    }
+
+    .results-heading h2 {
+      margin: 0;
+      font-family: "Songti SC", "STSong", Georgia, serif;
+      font-size: clamp(26px, 4vw, 38px);
+      line-height: 1.2;
+    }
+
+    .result-count {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .food-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .food-card {
+      position: relative;
+      min-width: 0;
+      padding: 20px;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(25, 56, 49, .045);
+    }
+
+    .food-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: var(--status-color);
+    }
+
+    .food-card[data-status="safe"] { --status-color: var(--safe); }
+    .food-card[data-status="limit"] { --status-color: var(--limit); }
+    .food-card[data-status="avoid"] { --status-color: var(--avoid); }
+
+    .card-top {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .food-name {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .status {
+      flex: 0 0 auto;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .status-safe { color: var(--safe); background: var(--safe-soft); }
+    .status-limit { color: var(--limit); background: var(--limit-soft); }
+    .status-avoid { color: var(--avoid); background: var(--avoid-soft); }
+
+    .food-summary {
+      margin: 14px 0 6px;
+      color: var(--ink);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .food-detail {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .food-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 16px;
+    }
+
+    .meta-pill {
+      padding: 3px 8px;
+      color: #60716e;
+      background: #f2f5f2;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+
+    .aliases {
+      margin: 12px 0 0;
+      color: #7b8986;
+      font-size: 12px;
+    }
+
+    .empty-state {
+      padding: 44px 24px;
+      text-align: center;
+      background: white;
+      border: 1px dashed #b9c7be;
+      border-radius: var(--radius);
+    }
+
+    .empty-state[hidden] { display: none; }
+    .empty-state strong { display: block; font-size: 20px; }
+    .empty-state p { margin: 8px auto 0; color: var(--muted); }
+
+    .load-more-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 22px 0 0;
+    }
+
+    .load-more {
+      min-height: 46px;
+      padding: 9px 22px;
+      color: white;
+      background: var(--brand);
+      border: 0;
+      border-radius: 999px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .load-more[hidden] { display: none; }
+
+    .guide-section {
+      margin: 70px 0 0;
+      padding: 34px;
+      color: white;
+      background: var(--brand);
+      border-radius: 28px;
+    }
+
+    .guide-section h2,
+    .info-section h2 {
+      margin: 0;
+      font-family: "Songti SC", "STSong", Georgia, serif;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.2;
+    }
+
+    .guide-intro {
+      max-width: 680px;
+      margin: 10px 0 24px;
+      color: #c8dbd6;
+    }
+
+    .safety-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .safety-item {
+      padding: 17px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 16px;
+    }
+
+    .safety-item b { display: block; margin-bottom: 5px; }
+    .safety-item p { margin: 0; color: #d7e5e1; font-size: 14px; }
+
+    .info-section {
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      gap: 28px;
+      margin: 58px 0;
+      padding: 32px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .info-content p { margin-top: 0; }
+
+    .medical-alert {
+      padding: 16px 18px;
+      color: #71322d;
+      background: var(--avoid-soft);
+      border-radius: 14px;
+    }
+
+    .sources {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .sources ul {
+      margin: 8px 0 0;
+      padding-left: 20px;
+    }
+
+    footer {
+      padding: 0 0 44px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .disclaimer {
+      max-width: 880px;
+      margin: 0;
+    }
+
+    .updated {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 8px;
+      background: #e9eeea;
+      border-radius: 6px;
+    }
+
+    @media (max-width: 880px) {
+      .hero-grid,
+      .info-section { grid-template-columns: 1fr; }
+      .hero-note { max-width: 620px; }
+      .food-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .safety-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 600px) {
+      .shell { width: min(100% - 24px, 1120px); }
+      .site-header { padding-top: 14px; }
+      .hero { padding-top: 18px; }
+      h1 { font-size: clamp(39px, 13vw, 56px); }
+      .hero-copy { font-size: 15px; }
+      .hero-note { display: none; }
+      .search-panel { top: 5px; margin-top: 12px; padding: 9px; border-radius: 18px; }
+      .search-input { min-height: 52px; padding-left: 46px; font-size: 16px; }
+      .filters { padding-bottom: 1px; }
+      .food-grid { grid-template-columns: 1fr; }
+      .food-card { padding: 18px; border-radius: 18px; }
+      .guide-section { margin-top: 52px; padding: 24px 18px; border-radius: 22px; }
+      .safety-grid { grid-template-columns: 1fr; }
+      .info-section { margin: 44px 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#results">跳到查询结果</a>
+
+  <header class="site-header shell">
+    <div class="brand" aria-label="孕期饮食速查">
+      <span class="brand-mark" aria-hidden="true">食</span>
+      <span>孕期饮食速查</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero shell" aria-labelledby="page-title">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">给孕早期家庭的日常查询工具</p>
+          <h1 id="page-title">这个食物，<br>怀孕能吃吗？</h1>
+          <p class="hero-copy">搜食材、商品名或常见叫法，先看结论，再看怎样吃更安全。覆盖菜场、超市、外卖和家庭餐桌上的常见食物。</p>
+        </div>
+        <p class="hero-note"><strong>先别被“忌口清单”吓到</strong>大多数食物在选对来源、洗净并彻底煮熟后都可以吃。关键是避开感染、汞、酒精和过量补充剂风险。</p>
+      </div>
+
+      <div class="search-panel" role="search">
+        <div class="search-row">
+          <div class="search-wrap">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <label class="sr-only" for="food-search" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">搜索食物</label>
+            <input id="food-search" class="search-input" type="search" autocomplete="off" placeholder="试试：螃蟹、火锅、酸奶、咖啡……">
+            <button id="clear-search" class="clear-search" type="button" aria-label="清空搜索">×</button>
+          </div>
+        </div>
+        <div class="filters" aria-label="按食用建议筛选">
+          <button class="filter-button" type="button" data-status-filter="all" aria-pressed="true">全部</button>
+          <button class="filter-button" type="button" data-status-filter="safe" aria-pressed="false">放心吃</button>
+          <button class="filter-button" type="button" data-status-filter="limit" aria-pressed="false">谨慎吃</button>
+          <button class="filter-button" type="button" data-status-filter="avoid" aria-pressed="false">避免吃</button>
+        </div>
+      </div>
+
+      <div id="category-bar" class="category-bar" aria-label="按食物品类筛选"></div>
+    </section>
+
+    <section id="results" class="shell" aria-labelledby="results-title">
+      <div class="results-heading">
+        <h2 id="results-title">常见食物</h2>
+        <p id="result-count" class="result-count" aria-live="polite"></p>
+      </div>
+      <div id="food-grid" class="food-grid"></div>
+      <div class="empty-state" data-empty-state hidden>
+        <strong>暂时没找到这个食物</strong>
+          <p>可以换一个叫法，或搜索它的品类。拿不准时先暂停食用，再咨询产科医生或营养师。</p>
+      </div>
+      <div class="load-more-wrap">
+        <button id="load-more" class="load-more" type="button" hidden>再看一些</button>
+      </div>
+    </section>
+
+    <section class="guide-section shell" aria-labelledby="safety-title">
+      <h2 id="safety-title">比“能不能吃”更重要的 4 件事</h2>
+      <p class="guide-intro">孕期更容易受到食源性疾病影响。采购、处理和保存方式，往往比食材名字本身更关键。</p>
+      <div class="safety-grid">
+        <article class="safety-item">
+          <b>洗净</b>
+          <p>流水洗手和果蔬；不建议用洗洁精清洗食物。</p>
+        </article>
+        <article class="safety-item">
+          <b>生熟分开</b>
+          <p>生肉、海鲜使用独立刀板和容器，避免汁液污染即食食物。</p>
+        </article>
+        <article class="safety-item">
+          <b>彻底煮熟</b>
+          <p>禽肉和剩菜 74℃、肉馅 71℃、整块肉和水产 63℃；整块肉静置 3 分钟。</p>
+        </article>
+        <article class="safety-item">
+          <b>及时冷藏</b>
+          <p>易腐食物不要在室温放太久；冰箱冷藏也不能杀死李斯特菌。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="info-section shell" aria-labelledby="doctor-title">
+      <div>
+        <p class="eyebrow">什么时候不要只查网页</p>
+        <h2 id="doctor-title">这些情况，联系医生</h2>
+      </div>
+      <div class="info-content">
+        <p class="medical-alert"><strong>尽快就医或联系产科：</strong>发热，持续呕吐或腹泻，明显脱水，严重腹痛；食用被召回或疑似污染食品后不适；误食高风险食品且出现症状。</p>
+        <p>如果只是偶然吃了一次“不建议”的食物，但没有不适，不代表一定会影响胎儿。记录食物、时间和摄入量，在产检时或通过医院渠道咨询，避免自行用药或催吐。</p>
+        <div class="sources">
+          <strong>内容核准依据</strong>
+          <ul>
+            <li><a href="https://dg.cnsoc.org/article/04/hjgfxca3Ra69sKbvqDETbg.html">中国营养学会《中国孕妇、乳母膳食指南（2022）》核心信息</a></li>
+            <li><a href="https://www.jncq.gov.cn/gongkai/site_changqingquqwsjkjszqqfybjjhsyfwzxd/channel_jn_changqingquqwsjkjszqqfybjjhsyfwzxd_65d/doc_693fabb8d5e4131905c29d44.html">国内妇幼保健机构：备孕和孕期妇女膳食指南操作建议</a></li>
+            <li><a href="https://www.cdc.gov/food-safety/foods/pregnant-women.html">美国疾病控制与预防中心（CDC）：孕妇更安全的食物选择</a></li>
+            <li><a href="https://www.fda.gov/food/consumers/questions-answers-fdaepa-advice-about-eating-fish-those-who-might-become-or-are-pregnant-or">美国食品药品监督管理局（FDA）：孕期鱼类建议</a></li>
+            <li><a href="https://www.fda.gov/food/people-risk-foodborne-illness/cooking-food-safety-moms-be">美国食品药品监督管理局（FDA）：孕期烹调与保存温度</a></li>
+            <li><a href="https://www.acog.org/womens-health/experts-and-stories/ask-acog/how-much-coffee-can-i-drink-while-pregnant">美国妇产科医师学会（ACOG）：孕期咖啡因建议</a></li>
+            <li><a href="https://ods.od.nih.gov/factsheets/Pregnancy-HealthProfessional/">美国国立卫生研究院（NIH）：孕期营养补充剂</a></li>
+            <li><a href="https://www.cfs.gov.hk/sc_chi/multimedia/multimedia_pub/multimedia_pub_fsf_119_04.html">香港食物安全中心：苦杏仁与氰化物风险</a></li>
+            <li><a href="https://www.nhs.uk/pregnancy/keeping-well/foods-to-avoid/">英国国家医疗服务体系（NHS）：孕期应避免的食物</a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell">
+    <p class="disclaimer"><strong>医学免责声明：</strong>本页用于日常食物安全速查，不能替代产科医生、营养师或药师的个体化建议。营养摄入优先参考中国孕期膳食指南；微生物、汞和食品处理条件同时参考 CDC、FDA、NHS 与香港食物安全中心。不同地区指南存在差异时，卡片会明确说明。妊娠并发症、食物过敏、糖尿病、甲状腺疾病、贫血及正在用药者，应以医生给出的饮食方案为准。食物安全标准和产品配方可能变化，购买时仍需查看包装标签、保质期和当地召回信息。</p>
+    <span class="updated">指南复核：2026 年 7 月</span>
+  </footer>
+
+  <script id="food-data" type="application/json">
+[
+  {"name":"米饭","aliases":["白米饭","大米饭"],"category":"主食杂粮","status":"safe","summary":"可以作为日常主食","detail":"搭配蔬菜、蛋白质食物更均衡；血糖异常者按医生建议控制份量。","tags":["熟食","碳水","主食"]},
+  {"name":"糙米饭","aliases":["糙米","杂粮饭"],"category":"主食杂粮","status":"safe","summary":"煮熟后可以吃","detail":"含膳食纤维，胃口较差或胀气时可与白米混合、从小份量开始。","tags":["全谷物","膳食纤维"]},
+  {"name":"小米粥","aliases":["小米","黄小米"],"category":"主食杂粮","status":"safe","summary":"煮透后可以吃","detail":"容易入口，但不要长期只喝粥；需要搭配蛋、奶、肉或豆制品。","tags":["粥","主食"]},
+  {"name":"燕麦","aliases":["燕麦片","纯燕麦"],"category":"主食杂粮","status":"safe","summary":"充分冲泡或煮熟后可以吃","detail":"优先选择少糖或无糖产品，查看配料表避免把谷物脆片当纯燕麦。","tags":["全谷物","早餐"]},
+  {"name":"玉米","aliases":["苞米","玉米棒"],"category":"主食杂粮","status":"safe","summary":"熟透后可以吃","detail":"可替换一部分精制主食；注意它是主食，不只是蔬菜。","tags":["粗粮","主食"]},
+  {"name":"红薯","aliases":["地瓜","番薯"],"category":"主食杂粮","status":"safe","summary":"蒸熟烤熟后可以吃","detail":"一次吃太多可能胀气或反酸，胃肠不适时减量。","tags":["薯类","主食"]},
+  {"name":"土豆","aliases":["马铃薯","洋芋"],"category":"主食杂粮","status":"safe","summary":"熟透后可以吃","detail":"发芽、明显变绿或发苦的土豆不要吃；烹调后也不能消除全部龙葵素。","tags":["薯类","主食"]},
+  {"name":"面条","aliases":["挂面","汤面"],"category":"主食杂粮","status":"safe","summary":"煮熟后可以吃","detail":"汤面往往钠较高，可少喝汤并搭配蔬菜和蛋白质。","tags":["面食","主食"]},
+  {"name":"全麦面包","aliases":["全麦吐司","杂粮面包"],"category":"主食杂粮","status":"safe","summary":"正规包装、在保质期内可以吃","detail":"查看配料表，优先全麦粉靠前且糖、钠较低的产品。","tags":["面包","早餐"]},
+  {"name":"馒头","aliases":["白馒头","杂粮馒头"],"category":"主食杂粮","status":"safe","summary":"蒸熟且保存得当可以吃","detail":"冷冻保存后要彻底复热；发霉的馒头整只丢弃，不能只切掉霉点。","tags":["面食","熟食"]},
+  {"name":"包子","aliases":["肉包","菜包"],"category":"主食杂粮","status":"limit","summary":"馅料熟透、现做现吃","detail":"肉馅中心要熟透；外购包子注意冷藏和复热，高盐高油品种少吃。","tags":["面食","肉馅","外购"]},
+  {"name":"饺子","aliases":["水饺","蒸饺"],"category":"主食杂粮","status":"limit","summary":"肉馅和海鲜馅必须熟透","detail":"煮到中心无生肉色；生熟饺子分开，蘸料避免使用生蛋。","tags":["面食","肉馅"]},
+  {"name":"年糕","aliases":["糯米糕","打糕"],"category":"主食杂粮","status":"limit","summary":"可以少量吃，注意噎食和消化","detail":"糯米制品黏、消化慢，恶心反酸时少吃；切小块并充分咀嚼。","tags":["糯米","甜食"]},
+  {"name":"油条","aliases":["炸面","果子"],"category":"主食杂粮","status":"limit","summary":"偶尔吃，不作为常规早餐","detail":"油脂和钠较高，选择新鲜油炸、没有哈喇味的产品。","tags":["油炸","早餐"]},
+
+  {"name":"猪肉","aliases":["瘦肉","五花肉"],"category":"肉禽","status":"safe","summary":"彻底煮熟后可以吃","detail":"中心不能有生肉色或血水；生肉与即食食物分开处理。","tags":["肉类","熟透"]},
+  {"name":"牛肉","aliases":["牛排","肥牛"],"category":"肉禽","status":"safe","summary":"全熟后可以吃","detail":"孕期不建议三分、五分或七分熟牛排；火锅肥牛也要涮到完全变色。","tags":["肉类","补铁"]},
+  {"name":"羊肉","aliases":["羊排","羊肉片"],"category":"肉禽","status":"safe","summary":"彻底煮熟后可以吃","detail":"羊肉本身不会导致所谓“上火流产”；关键是熟透、适量和卫生。","tags":["肉类","熟透"]},
+  {"name":"鸡肉","aliases":["鸡腿","鸡胸肉"],"category":"肉禽","status":"safe","summary":"彻底煮熟后可以吃","detail":"最厚处不应有粉红色或血水；处理生鸡肉后清洁手和台面。","tags":["禽肉","熟透"]},
+  {"name":"鸭肉","aliases":["烤鸭","鸭腿"],"category":"肉禽","status":"safe","summary":"熟透后可以吃","detail":"外购熟鸭应趁热食用；冷藏后再次吃要彻底加热。","tags":["禽肉","熟食"]},
+  {"name":"肉馅","aliases":["猪肉馅","牛肉馅","绞肉"],"category":"肉禽","status":"limit","summary":"必须从中心彻底熟透","detail":"绞肉污染可分布在内部，不能只看表面变色；现买现做并冷藏保存。","tags":["肉类","高风险"]},
+  {"name":"香肠","aliases":["火腿肠","热狗肠","腊肠"],"category":"肉禽","status":"limit","summary":"加热到整体滚烫后少量吃","detail":"加工肉钠高，冷食还有李斯特菌风险；不要直接吃冷藏即食香肠。","tags":["加工肉","高钠","加热"]},
+  {"name":"培根","aliases":["烟肉","熏肉"],"category":"肉禽","status":"limit","summary":"彻底煎熟后偶尔吃","detail":"属于高盐加工肉，不宜频繁食用；避免焦黑。","tags":["加工肉","高钠"]},
+  {"name":"腊肉","aliases":["咸肉","风干肉"],"category":"肉禽","status":"limit","summary":"充分加热后少量吃","detail":"盐分高，未经加热的腌肉可能有微生物风险。","tags":["腌制","高钠"]},
+  {"name":"动物肝脏","aliases":["猪肝","鸡肝","鹅肝"],"category":"肉禽","status":"limit","summary":"不同指南有差异，少量、低频更稳妥","detail":"中国孕期膳食指导允许少量低频摄入动物肝或血补铁，NHS则建议孕期避免肝脏。肝脏富含视黄醇型维生素A，不要频繁大量吃，也不要与含视黄醇补充剂叠加；贫血或正在补充维生素A时先问医生。","tags":["指南差异","维生素A"]},
+  {"name":"肉酱与肉酱罐头","aliases":["肉酱","午餐肉罐头"],"category":"肉禽","status":"limit","summary":"选密封常温产品，加热后少量吃","detail":"高钠高脂；需要冷藏的肉酱、开封久放的肉酱不建议直接食用。","tags":["罐头","加工肉"]},
+  {"name":"生肉与半生肉","aliases":["生拌牛肉","醉肉","三分熟牛排"],"category":"肉禽","status":"avoid","summary":"孕期避免","detail":"存在弓形虫、沙门氏菌和其他病原体风险，腌制、风干不能替代彻底加热。","tags":["生食","感染风险"]},
+
+  {"name":"全熟鸡蛋","aliases":["水煮蛋","煎蛋","炒蛋"],"category":"蛋奶","status":"safe","summary":"蛋白蛋黄凝固后可以吃","detail":"现做现吃；裂壳蛋、散黄有异味的蛋不要食用。","tags":["鸡蛋","熟透"]},
+  {"name":"溏心蛋","aliases":["流心蛋","温泉蛋","半熟蛋"],"category":"蛋奶","status":"avoid","summary":"孕期建议避免","detail":"蛋黄或蛋白未凝固可能带来沙门氏菌风险；改选全熟蛋。","tags":["鸡蛋","半生"]},
+  {"name":"生鸡蛋","aliases":["生蛋液","可生食鸡蛋"],"category":"蛋奶","status":"avoid","summary":"不要直接生食","detail":"即使标注“可生食”，孕期仍建议选巴氏杀菌蛋液或彻底加热。","tags":["鸡蛋","生食"]},
+  {"name":"巴氏杀菌或灭菌牛奶","aliases":["鲜牛奶","纯牛奶","常温奶","巴氏杀菌牛奶"],"category":"蛋奶","status":"safe","summary":"在保质期内可以喝","detail":"确认包装注明巴氏杀菌或超高温灭菌，开封后按标签要求及时冷藏。","tags":["奶制品","钙"]},
+  {"name":"生牛奶","aliases":["鲜挤奶","农场奶","未经消毒牛奶"],"category":"蛋奶","status":"avoid","summary":"孕期避免","detail":"可能含李斯特菌、布鲁氏菌等；家庭煮沸也难替代规范巴氏杀菌和生产控制。","tags":["未巴氏杀菌","感染风险"]},
+  {"name":"酸奶","aliases":["发酵乳","无糖酸奶"],"category":"蛋奶","status":"safe","summary":"使用巴氏杀菌奶、冷藏合格即可","detail":"选正规产品并在保质期内食用；控糖时优先原味少糖。","tags":["奶制品","冷藏"]},
+  {"name":"硬质奶酪","aliases":["切达奶酪","帕玛森","芝士片"],"category":"蛋奶","status":"safe","summary":"正规包装产品通常可以吃","detail":"确认由巴氏杀菌奶制成；钠和脂肪较高，适量即可。","tags":["奶酪","钙"]},
+  {"name":"软质霉菌奶酪","aliases":["布里奶酪","卡门贝尔","蓝纹奶酪"],"category":"蛋奶","status":"avoid","summary":"冷食建议避免","detail":"软质霉菌奶酪李斯特菌风险更高；如食用需确认巴氏杀菌并加热至整体滚烫。","tags":["软奶酪","李斯特菌"]},
+  {"name":"奶粉","aliases":["孕妇奶粉","成人奶粉"],"category":"蛋奶","status":"limit","summary":"可以按需喝，不是孕期必需品","detail":"按说明冲调，注意添加糖和重复补充维生素；已有孕期复合维生素时先核对成分。","tags":["奶制品","强化食品"]},
+  {"name":"炼乳","aliases":["甜炼乳","淡炼乳"],"category":"蛋奶","status":"limit","summary":"少量调味可以","detail":"甜炼乳含糖高，不能替代牛奶作为主要奶类来源。","tags":["高糖","奶制品"]},
+
+  {"name":"三文鱼","aliases":["鲑鱼","大西洋鲑"],"category":"水产","status":"safe","summary":"彻底熟透后可以吃","detail":"属于常见低汞选择，可轮换食用；避免生食、冷熏或腌制未加热产品。","tags":["低汞鱼","熟食"]},
+  {"name":"鳕鱼","aliases":["真鳕","太平洋鳕"],"category":"水产","status":"safe","summary":"熟透后可以吃","detail":"真鳕通常属于低汞优选鱼，可与其他低汞鱼轮换食用。","tags":["低汞鱼","熟食"]},
+  {"name":"银鳕鱼","aliases":["裸盖鱼","黑鳕","sablefish","南极犬牙鱼"],"category":"水产","status":"limit","summary":"确认鱼种，每周最多 1 份更稳妥","detail":"“银鳕鱼”是商品名，常对应裸盖鱼或南极犬牙鱼，并不是真鳕。FDA 将这类鱼列为每周 1 份的良好选择；仍需彻底煮熟。","tags":["鱼种差异","汞"]},
+  {"name":"鲈鱼","aliases":["海鲈鱼","河鲈"],"category":"水产","status":"safe","summary":"彻底熟透后可以吃","detail":"去除内脏并充分加热，来源不明的野生鱼需关注当地污染提示。","tags":["鱼类","熟食"]},
+  {"name":"鲫鱼","aliases":["河鲫鱼","鲫瓜子"],"category":"水产","status":"safe","summary":"熟透后可以吃","detail":"注意细刺；不需要依靠单一鱼汤“催奶”或补充全部营养。","tags":["淡水鱼","熟食"]},
+  {"name":"带鱼","aliases":["刀鱼","牙带鱼"],"category":"水产","status":"safe","summary":"彻底煮熟后可以吃","detail":"正规来源、去内脏并熟透；腌带鱼盐分较高。","tags":["海鱼","熟食"]},
+  {"name":"沙丁鱼","aliases":["罐装沙丁鱼"],"category":"水产","status":"safe","summary":"熟制或正规罐装产品可以吃","detail":"属于低汞鱼；罐头注意钠含量和罐体是否鼓包破损。","tags":["低汞鱼","罐头"]},
+  {"name":"虾","aliases":["基围虾","明虾","对虾"],"category":"水产","status":"safe","summary":"熟到肉质不透明后可以吃","detail":"海鲜过敏者不要尝试；处理生虾后洗手并清洁台面。","tags":["贝壳水产","熟食"]},
+  {"name":"螃蟹","aliases":["大闸蟹","梭子蟹","青蟹","冷冻蟹"],"category":"水产","status":"safe","summary":"来源可靠、保存合规并彻底煮熟后可以吃","detail":"鲜活蟹、规范冷冻蟹或合格预煮蟹都可以；不要吃死亡后常温久放、来源不明、变质或未熟的蟹。螃蟹不会因所谓“寒性”必然导致流产。","tags":["低汞水产","熟食"]},
+  {"name":"贝类","aliases":["蛤蜊","花甲","扇贝","生蚝","牡蛎"],"category":"水产","status":"safe","summary":"彻底熟透后可以吃","detail":"加热到壳打开且肉质不透明；未开口的贝类丢弃。不要生吃生蚝。","tags":["贝类","熟食"]},
+  {"name":"鱿鱼","aliases":["乌贼","墨鱼","章鱼"],"category":"水产","status":"safe","summary":"彻底熟透后可以吃","detail":"避免生腌或只烫几秒；烧烤时不要焦黑。","tags":["海鲜","熟食"]},
+  {"name":"罐装水浸金枪鱼","aliases":["水浸吞拿鱼","淡金枪鱼罐头","鲣鱼罐头"],"category":"水产","status":"safe","summary":"罐装淡金枪鱼属于低汞优选","detail":"FDA 将罐装淡金枪鱼列为每周可选 2–3 份的低汞鱼，但应与其他鱼类轮换。长鳍、黄鳍和大眼金枪鱼不是同一等级，购买时查看鱼种。","tags":["低汞鱼","罐头"]},
+  {"name":"大眼金枪鱼","aliases":["bigeye tuna","大目金枪鱼"],"category":"水产","status":"avoid","summary":"孕期避免","detail":"属于高汞鱼种；购买金枪鱼排或寿司时无法确认鱼种则不吃更稳妥。","tags":["高汞鱼","避免"]},
+  {"name":"鲨鱼","aliases":["鲨鱼肉","鱼翅"],"category":"水产","status":"avoid","summary":"孕期避免","detail":"可能含较高甲基汞，不属于孕期推荐鱼类。","tags":["高汞鱼"]},
+  {"name":"剑鱼","aliases":["旗鱼","swordfish"],"category":"水产","status":"avoid","summary":"孕期避免","detail":"属于高汞大型掠食鱼。","tags":["高汞鱼"]},
+  {"name":"马鲛王鱼","aliases":["king mackerel","大王鲭"],"category":"水产","status":"avoid","summary":"孕期避免","detail":"注意它与常见低汞的小型鲭鱼不同，属于高汞鱼。","tags":["高汞鱼"]},
+  {"name":"生鱼片","aliases":["刺身","生三文鱼","生寿司"],"category":"水产","status":"avoid","summary":"孕期避免生食","detail":"冷冻可降低部分寄生虫风险，但不能消除所有细菌和李斯特菌风险。","tags":["生食","感染风险"]},
+  {"name":"生腌海鲜","aliases":["潮汕生腌","醉虾","醉蟹"],"category":"水产","status":"avoid","summary":"孕期避免","detail":"酒、醋、盐和辣椒不能替代彻底加热，存在细菌、病毒和寄生虫风险。","tags":["生食","腌制"]},
+  {"name":"冷熏三文鱼","aliases":["烟熏三文鱼","冷熏鱼"],"category":"水产","status":"avoid","summary":"冷食避免","detail":"冷熏不能保证杀灭李斯特菌；只有加入菜肴后加热至整体滚烫才更安全。","tags":["冷熏","李斯特菌"]},
+
+  {"name":"菠菜","aliases":["波斯菜","赤根菜"],"category":"蔬菜菌菇","status":"safe","summary":"洗净、煮熟后可以吃","detail":"富含叶酸和多种营养，但不能替代医生建议的叶酸补充剂。","tags":["绿叶菜","叶酸"]},
+  {"name":"西兰花","aliases":["绿菜花","青花菜"],"category":"蔬菜菌菇","status":"safe","summary":"洗净、煮熟后可以吃","detail":"掰成小朵流水冲洗，避免长时间室温放置。","tags":["蔬菜","熟食"]},
+  {"name":"生菜","aliases":["球生菜","罗马生菜"],"category":"蔬菜菌菇","status":"limit","summary":"可生吃，但必须逐叶彻底洗净","detail":"孕期更稳妥的选择是洗净后熟食；外购预拌沙拉风险更难控制。","tags":["生食蔬菜","清洗"]},
+  {"name":"番茄","aliases":["西红柿","小番茄","圣女果"],"category":"蔬菜菌菇","status":"safe","summary":"洗净后生熟均可","detail":"流水搓洗表面，切开后及时冷藏并尽快吃完。","tags":["蔬菜","生食"]},
+  {"name":"黄瓜","aliases":["青瓜","小黄瓜"],"category":"蔬菜菌菇","status":"safe","summary":"彻底洗净后可以吃","detail":"凉拌时刀板不要与生肉混用，现拌现吃。","tags":["蔬菜","凉菜"]},
+  {"name":"胡萝卜","aliases":["红萝卜"],"category":"蔬菜菌菇","status":"safe","summary":"洗净后可以吃","detail":"食物中的β-胡萝卜素与高剂量视黄醇补充剂不同，正常吃胡萝卜无需担心维生素 A 过量。","tags":["蔬菜","β胡萝卜素"]},
+  {"name":"茄子","aliases":["紫茄子","长茄"],"category":"蔬菜菌菇","status":"safe","summary":"煮熟后可以吃","detail":"不存在因“寒凉”必须忌口的权威依据；少油烹调更合适。","tags":["蔬菜","熟食"]},
+  {"name":"韭菜","aliases":["韭黄"],"category":"蔬菜菌菇","status":"safe","summary":"洗净、熟透后可以吃","detail":"胃肠敏感或反酸时少量尝试；与流产没有直接必然关系。","tags":["蔬菜","熟食"]},
+  {"name":"芹菜","aliases":["西芹","香芹"],"category":"蔬菜菌菇","status":"safe","summary":"洗净后可以吃","detail":"正常食用不会因为“降血压”伤害胎儿；正在限钾或有特殊疾病时遵医嘱。","tags":["蔬菜","膳食纤维"]},
+  {"name":"白菜","aliases":["大白菜","小白菜","青菜"],"category":"蔬菜菌菇","status":"safe","summary":"洗净、煮熟后可以吃","detail":"去掉腐烂叶片，切后及时烹调。","tags":["绿叶菜","熟食"]},
+  {"name":"莲藕","aliases":["藕","藕片"],"category":"蔬菜菌菇","status":"safe","summary":"彻底煮熟后可以吃","detail":"来自泥水环境，不建议生吃或只做脆嫩半熟。","tags":["根茎","熟食"]},
+  {"name":"山药","aliases":["淮山","铁棍山药"],"category":"蔬菜菌菇","status":"safe","summary":"熟透后可以吃","detail":"处理生山药可能皮肤发痒，可戴手套；不能替代药物治疗。","tags":["薯类","熟食"]},
+  {"name":"香菇","aliases":["冬菇","花菇"],"category":"蔬菜菌菇","status":"safe","summary":"充分煮熟后可以吃","detail":"干香菇泡发后及时烹调，泡发水不要长时间室温放置。","tags":["菌菇","熟食"]},
+  {"name":"金针菇","aliases":["金菇","enoki"],"category":"蔬菜菌菇","status":"limit","summary":"必须彻底煮熟、趁热吃","detail":"不要凉拌或半生食用；金针菇曾与李斯特菌食源事件相关。","tags":["菌菇","李斯特菌"]},
+  {"name":"木耳","aliases":["黑木耳","云耳"],"category":"蔬菜菌菇","status":"limit","summary":"现泡现做并彻底煮熟","detail":"不要长时间室温泡发；泡发后有异味、发黏或隔夜久放应丢弃。","tags":["干货","泡发"]},
+  {"name":"野生蘑菇","aliases":["野蘑菇","自采菌子"],"category":"蔬菜菌菇","status":"avoid","summary":"不采、不买、不吃来源不明野生菌","detail":"仅凭外观无法可靠识别毒蘑菇，烹煮也不能消除所有毒素。","tags":["中毒风险","野生"]},
+  {"name":"生豆芽","aliases":["生芽菜","苜蓿芽","萝卜芽"],"category":"蔬菜菌菇","status":"avoid","summary":"避免生吃或只轻微烫过","detail":"种子发芽环境利于细菌生长；应彻底加热至滚烫。","tags":["芽菜","生食"]},
+  {"name":"腌菜与泡菜","aliases":["咸菜","酸菜","榨菜"],"category":"蔬菜菌菇","status":"limit","summary":"正规产品、少量食用","detail":"钠含量高；自制发酵失败、胀袋、异味或表面发霉的不要吃。","tags":["腌制","高钠"]},
+
+  {"name":"苹果","aliases":["红富士","青苹果"],"category":"水果","status":"safe","summary":"流水洗净后可以吃","detail":"削皮不是必须；切开后及时吃或冷藏。","tags":["水果","清洗"]},
+  {"name":"香蕉","aliases":["芭蕉"],"category":"水果","status":"safe","summary":"可以吃","detail":"正常食用不会导致所谓“滑胎”；血糖异常者按医生建议控制份量。","tags":["水果","钾"]},
+  {"name":"橙子","aliases":["橙","脐橙"],"category":"水果","status":"safe","summary":"洗净外皮后可以吃","detail":"剥皮前先洗手和果皮，避免刀具把表面污物带入果肉。","tags":["水果","维生素C"]},
+  {"name":"柚子","aliases":["葡萄柚","西柚"],"category":"水果","status":"limit","summary":"普通柚子可以吃；服药者先核对","detail":"葡萄柚可能影响某些药物代谢，正在用药时咨询医生或药师。","tags":["水果","药物相互作用"]},
+  {"name":"草莓","aliases":["士多啤梨"],"category":"水果","status":"safe","summary":"流水充分清洗后可以吃","detail":"先洗再去蒂，发现霉变时不要只切掉霉点继续吃。","tags":["莓果","清洗"]},
+  {"name":"蓝莓","aliases":["越橘"],"category":"水果","status":"safe","summary":"洗净后可以吃","detail":"冷冻蓝莓按包装要求保存，解冻后尽快食用。","tags":["莓果","水果"]},
+  {"name":"葡萄","aliases":["提子","青提"],"category":"水果","status":"safe","summary":"逐粒流水洗净后可以吃","detail":"不需要用洗洁精；血糖异常时注意一餐份量。","tags":["水果","清洗"]},
+  {"name":"猕猴桃","aliases":["奇异果"],"category":"水果","status":"safe","summary":"洗净削皮后可以吃","detail":"对猕猴桃或乳胶过敏者谨慎。","tags":["水果","维生素C"]},
+  {"name":"芒果","aliases":["台农芒","大青芒"],"category":"水果","status":"safe","summary":"不过敏即可吃","detail":"芒果本身不会导致胎儿“湿热”；有接触性过敏史者避免。","tags":["水果","过敏"]},
+  {"name":"菠萝","aliases":["凤梨"],"category":"水果","status":"safe","summary":"成熟、洗净后可以吃","detail":"正常食用量不会因菠萝蛋白酶导致流产；口腔刺痛或过敏时停止。","tags":["水果","过敏"]},
+  {"name":"西瓜","aliases":["无籽西瓜"],"category":"水果","status":"safe","summary":"新鲜切开、冷藏得当可以吃","detail":"切瓜前洗净外皮；切开的瓜及时冷藏，不吃室温久放或隔夜保存不当的。","tags":["水果","冷藏"]},
+  {"name":"木瓜","aliases":["番木瓜"],"category":"水果","status":"safe","summary":"成熟木瓜可以正常吃","detail":"选择完全成熟、洗净的木瓜；未成熟青木瓜和来源不明浓缩制品不建议大量食用。","tags":["水果","成熟"]},
+  {"name":"桃子","aliases":["水蜜桃","油桃"],"category":"水果","status":"safe","summary":"洗净后可以吃","detail":"去除碰伤、腐烂部位；对桃毛或核果过敏者避免。","tags":["水果","清洗"]},
+  {"name":"梨","aliases":["雪梨","香梨"],"category":"水果","status":"safe","summary":"洗净后可以吃","detail":"没有因“寒性”而必须忌口的医学依据；胃肠不适时适量。","tags":["水果","清洗"]},
+  {"name":"荔枝","aliases":["鲜荔枝"],"category":"水果","status":"safe","summary":"新鲜、洗净后可以吃","detail":"没有孕期特有禁忌；与其他水果一样按日常份量食用。血糖异常者按医生建议控制总量，发酵有酒味或变质的果肉不要吃。","tags":["水果","正常份量"]},
+  {"name":"龙眼","aliases":["桂圆","鲜桂圆"],"category":"水果","status":"safe","summary":"新鲜龙眼可以吃","detail":"没有可靠证据表明正常食物量会导致流产；干桂圆糖分更集中，按普通干果份量食用。","tags":["水果","正常份量"]},
+  {"name":"山楂","aliases":["山里红","鲜山楂"],"category":"水果","status":"safe","summary":"鲜果按正常份量可以吃","detail":"没有证据支持山楂会催产，也不应把它当作催产或治疗用品。反酸者减少食用；浓缩草本制剂不自行使用。","tags":["水果","酸味"]},
+  {"name":"榴莲","aliases":["金枕榴莲"],"category":"水果","status":"safe","summary":"按正常水果份量可以吃","detail":"没有因所谓“热性”而必须禁食的依据；能量较高，血糖异常者按医生建议控制总量。","tags":["水果","正常份量"]},
+  {"name":"柿子","aliases":["脆柿","软柿"],"category":"水果","status":"safe","summary":"成熟、洗净后可以吃","detail":"没有孕期特有禁忌；胃肠不适时减少份量，避免食用未成熟、腐坏的柿子。","tags":["水果","成熟"]},
+  {"name":"预切水果拼盘","aliases":["盒装水果","果切"],"category":"水果","status":"limit","summary":"选择冷藏、现切、来源可靠的产品","detail":"切开后更容易受污染；优先购买完整水果自行清洗切配。","tags":["即食","冷藏"]},
+
+  {"name":"豆腐","aliases":["北豆腐","嫩豆腐","内酯豆腐"],"category":"豆类坚果","status":"safe","summary":"充分加热后可以吃","detail":"开封后及时冷藏，散装豆腐注意来源和当天食用。","tags":["豆制品","蛋白质"]},
+  {"name":"豆浆","aliases":["现磨豆浆","无糖豆浆"],"category":"豆类坚果","status":"safe","summary":"彻底煮沸后可以喝","detail":"生豆浆或假沸豆浆可能引起不适；外购时确认已充分加热。","tags":["豆制品","熟食"]},
+  {"name":"腐竹","aliases":["豆皮","油皮"],"category":"豆类坚果","status":"safe","summary":"正规产品泡发并煮熟后可以吃","detail":"不要长时间室温泡发；有异味或黏滑时丢弃。","tags":["豆制品","泡发"]},
+  {"name":"毛豆","aliases":["枝豆","青豆"],"category":"豆类坚果","status":"safe","summary":"彻底煮熟后可以吃","detail":"不要吃生豆或夹生豆，避免引起胃肠不适。","tags":["豆类","熟食"]},
+  {"name":"红豆绿豆","aliases":["赤小豆","绿豆汤"],"category":"豆类坚果","status":"safe","summary":"煮熟后可以吃","detail":"正常食物量不会因“寒热属性”影响妊娠；甜汤注意少糖。","tags":["豆类","杂粮"]},
+  {"name":"花生","aliases":["花生米","落花生"],"category":"豆类坚果","status":"safe","summary":"不过敏、无霉变即可吃","detail":"孕期不需要为了预防宝宝过敏而主动忌口；发霉或有哈喇味的坚果丢弃。","tags":["坚果","过敏"]},
+  {"name":"核桃","aliases":["胡桃"],"category":"豆类坚果","status":"safe","summary":"新鲜、无霉味可以吃","detail":"一小把即可，不需要大量食用来“补脑”。","tags":["坚果","脂肪"]},
+  {"name":"巴旦木与腰果","aliases":["甜杏仁","美国大杏仁","巴旦木","腰果"],"category":"豆类坚果","status":"safe","summary":"正规加工、无霉变可以吃","detail":"这里的“甜杏仁”指超市坚果巴旦木，不包括中药材苦杏仁或北杏。优先无盐或低盐产品。","tags":["坚果","零食"]},
+  {"name":"苦杏仁与北杏","aliases":["苦杏仁","北杏","杏核仁","生杏仁"],"category":"豆类坚果","status":"avoid","summary":"不要把生苦杏仁当坚果食用","detail":"苦杏仁和生杏核仁可释放氰化物，少量也可能中毒；不要自行食用或用作所谓保健品。药用或汤料必须遵从专业人员和合规产品说明。","tags":["氰化物","天然毒素"]},
+  {"name":"银杏果","aliases":["白果"],"category":"豆类坚果","status":"avoid","summary":"孕期不建议食用","detail":"生白果有毒，熟制也应严格限量；孕期没有必要承担不确定风险。","tags":["天然毒素","白果"]},
+
+  {"name":"白开水","aliases":["温水","饮用水"],"category":"饮品","status":"safe","summary":"日常首选饮品","detail":"少量多次饮用；水肿并不等于要自行严格限水，特殊情况遵医嘱。","tags":["饮水","无糖"]},
+  {"name":"咖啡","aliases":["美式","拿铁","卡布奇诺","浓缩咖啡"],"category":"饮品","status":"limit","summary":"可以喝，但全天咖啡因少于 200 mg","detail":"杯量、豆种和门店差异很大，查看标签或询问门店；茶、可乐和巧克力中的咖啡因也要合计。","tags":["咖啡因","饮料"]},
+  {"name":"低因咖啡","aliases":["脱因咖啡","decaf"],"category":"饮品","status":"limit","summary":"通常可以喝，仍需查看咖啡因和配料","detail":"低因不等于完全无咖啡因；含糖奶咖还需注意糖分。","tags":["咖啡因","饮料"]},
+  {"name":"茶","aliases":["绿茶","红茶","乌龙茶","普洱茶"],"category":"饮品","status":"limit","summary":"淡泡少量，并计入全天咖啡因","detail":"避免空腹浓茶；茶可能影响铁吸收，贫血者与正餐和铁剂错开。","tags":["咖啡因","茶饮"]},
+  {"name":"奶茶","aliases":["珍珠奶茶","港式奶茶"],"category":"饮品","status":"limit","summary":"偶尔小杯、少糖","detail":"通常同时含咖啡因和较多糖；不要把奶茶当作牛奶替代品。","tags":["咖啡因","高糖"]},
+  {"name":"可乐","aliases":["汽水","碳酸可乐"],"category":"饮品","status":"limit","summary":"偶尔少量，并计入咖啡因","detail":"含糖可乐糖分高；无糖可乐也不应替代水和奶。","tags":["咖啡因","碳酸饮料"]},
+  {"name":"能量饮料","aliases":["功能饮料","提神饮料","红牛"],"category":"饮品","status":"avoid","summary":"孕期避免","detail":"咖啡因含量可能较高，还可能含瓜拉纳等刺激成分，孕期安全资料不足。","tags":["咖啡因","刺激物"]},
+  {"name":"酒精饮品","aliases":["白酒","啤酒","红酒","葡萄酒","米酒","鸡尾酒"],"category":"饮品","status":"avoid","summary":"孕期没有已知安全饮酒量","detail":"无论酒种和孕周都建议不喝；所谓“少量红酒养血”不适用于孕期。","tags":["酒精","避免"]},
+  {"name":"无醇啤酒","aliases":["无酒精啤酒","0度啤酒"],"category":"饮品","status":"limit","summary":"先看标签，优先选择标示 0.0%","detail":"“无醇”产品仍可能含微量酒精，也可能含糖；不确定时选择其他饮品。","tags":["酒精标签","饮料"]},
+  {"name":"巴氏杀菌果汁","aliases":["瓶装果汁","纯果汁"],"category":"饮品","status":"limit","summary":"正规巴氏杀菌产品可少量喝","detail":"果汁糖分集中且缺少完整水果的纤维，不能替代吃水果。","tags":["果汁","高糖"]},
+  {"name":"鲜榨生果汁","aliases":["现榨果汁","冷压果汁","未杀菌果汁"],"category":"饮品","status":"avoid","summary":"来源和杀菌不明时避免","detail":"未巴氏杀菌果汁可能含致病菌；优先吃洗净的完整水果。","tags":["未巴氏杀菌","生食"]},
+  {"name":"椰子水","aliases":["椰青水"],"category":"饮品","status":"safe","summary":"新鲜或正规包装产品可以喝","detail":"不能替代全部饮水，也没有特殊“保胎”功效；开封后及时冷藏。","tags":["饮料","补水"]},
+  {"name":"蜂蜜水","aliases":["蜂蜜柠檬水"],"category":"饮品","status":"safe","summary":"孕妇可以喝，注意糖量","detail":"一岁以下婴儿不能吃蜂蜜的限制不适用于孕妇；蜂蜜不能治疗妊娠并发症。","tags":["蜂蜜","高糖"]},
+  {"name":"草本花茶","aliases":["菊花茶","玫瑰花茶","养生茶"],"category":"饮品","status":"limit","summary":"先看完整配料，避免甘草根茶","detail":"很多草本缺少孕期安全数据。NHS 建议草本茶每天不超过 4 杯，并避免含甘草根的茶；浓缩、复方或成分不清的产品先咨询医生。","tags":["草本","看配料"]},
+
+  {"name":"黑巧克力","aliases":["巧克力","可可"],"category":"零食甜品","status":"limit","summary":"少量吃，并计入咖啡因","detail":"同时含咖啡因和糖；查看包装份量，不必因为孕期完全戒掉。","tags":["咖啡因","甜食"]},
+  {"name":"冰淇淋","aliases":["雪糕","冰激凌"],"category":"零食甜品","status":"limit","summary":"正规巴氏杀菌产品可偶尔吃","detail":"注意冷链、保质期和糖分；反复融化再冻或包装破损的不要吃。","tags":["冷冻","高糖"]},
+  {"name":"蛋糕","aliases":["奶油蛋糕","生日蛋糕"],"category":"零食甜品","status":"limit","summary":"新鲜、冷藏合格可少量吃","detail":"选择使用巴氏杀菌蛋奶的产品；含酒心、未熟蛋液或久放奶油的避免。","tags":["甜食","冷藏"]},
+  {"name":"月饼","aliases":["广式月饼","苏式月饼"],"category":"零食甜品","status":"limit","summary":"少量吃","detail":"糖、油和能量较高；血糖异常者按医生建议。","tags":["高糖","高脂"]},
+  {"name":"饼干薯片","aliases":["曲奇","薯片","膨化食品"],"category":"零食甜品","status":"limit","summary":"偶尔少量","detail":"通常高盐、高糖或高脂，不能替代正餐和坚果水果。","tags":["零食","高钠"]},
+  {"name":"果脯蜜饯","aliases":["话梅","陈皮梅","葡萄干"],"category":"零食甜品","status":"limit","summary":"少量吃，查看糖和钠","detail":"果干糖分浓缩，蜜饯还可能含较多盐；不能等量替代新鲜水果。","tags":["果干","高糖"]},
+  {"name":"酒心巧克力","aliases":["朗姆巧克力","含酒甜品"],"category":"零食甜品","status":"avoid","summary":"孕期避免","detail":"可能含未充分挥发的酒精；选择明确无酒精的普通巧克力。","tags":["酒精","甜食"]},
+  {"name":"生面团与生面糊","aliases":["曲奇面团","蛋糕糊","生粉面团"],"category":"零食甜品","status":"avoid","summary":"不要试吃未烤熟面糊","detail":"生面粉和生鸡蛋都可能携带致病菌，烘焙完成后再吃。","tags":["生面粉","生鸡蛋"]},
+
+  {"name":"火锅","aliases":["涮锅","麻辣烫"],"category":"熟食外卖","status":"limit","summary":"可以吃，关键是全熟和生熟分筷","detail":"肉片、内脏、海鲜和丸子煮透；不用夹生肉的筷子夹熟食，锅底和蘸料注意钠。","tags":["外食","熟透"]},
+  {"name":"烧烤","aliases":["烤肉","烤串"],"category":"熟食外卖","status":"limit","summary":"偶尔吃，肉类必须全熟","detail":"避免外焦内生和焦黑部位；生熟夹子分开，选择卫生可靠的店。","tags":["外食","高温烹调"]},
+  {"name":"熟制寿司","aliases":["熟虾寿司","鳗鱼寿司","玉子寿司"],"category":"熟食外卖","status":"limit","summary":"配料全熟、现做冷藏合格可以吃","detail":"确认没有生鱼、生蛋黄或冷熏鱼；米饭和配料不应室温久放。","tags":["外食","熟食"]},
+  {"name":"凉菜","aliases":["凉拌菜","冷盘"],"category":"熟食外卖","status":"limit","summary":"家庭现做现吃更稳妥","detail":"外购凉菜难判断清洗和冷藏过程；孕期优先选择热食。","tags":["冷食","外购"]},
+  {"name":"预包装冷藏沙拉","aliases":["盒装沙拉","外卖沙拉","预制沙拉"],"category":"熟食外卖","status":"avoid","summary":"保守做法是孕期避免预包装冷藏即食沙拉","detail":"香港食安中心建议孕妇避免预包装沙拉；NHS允许在冷链完整、未过期时谨慎食用。为降低李斯特菌风险，本工具采用更保守的避免建议，优先自己洗切、现做现吃。","tags":["地区指南差异","李斯特菌"]},
+  {"name":"冷切肉三明治","aliases":["火腿三明治","冷肉卷"],"category":"熟食外卖","status":"avoid","summary":"冷食避免","detail":"冷切肉可能有李斯特菌风险；如要吃，应把肉加热到整体滚烫并现做现吃。","tags":["冷切肉","李斯特菌"]},
+  {"name":"盒饭与外卖热餐","aliases":["外卖","工作餐","便当"],"category":"熟食外卖","status":"limit","summary":"选择现做、送到时仍热的餐食","detail":"肉蛋水产要熟透；送达后尽快吃，不吃温温的、室温久放的餐食。","tags":["外卖","热食"]},
+  {"name":"自助餐","aliases":["冷餐会","宴席"],"category":"熟食外卖","status":"limit","summary":"优先刚出锅且持续保温的热食","detail":"避开生食、冷盘、久放沙拉和温度不明的菜；少量多次取餐不代表更安全。","tags":["外食","温度"]},
+  {"name":"剩饭剩菜","aliases":["隔夜菜","打包菜"],"category":"熟食外卖","status":"limit","summary":"2 小时内冷藏，复热到 74℃","detail":"烹调后 2 小时内冷藏，冰箱保持 4℃ 或以下，通常在 3–4 天内吃完；食用前中心复热至 74℃。超过时限、保存温度不明或反复加热的丢弃。","tags":["剩菜","时间温度"]},
+  {"name":"冷藏熟食","aliases":["卤味","熟食柜","酱牛肉"],"category":"熟食外卖","status":"limit","summary":"优先新鲜现做，并加热到滚烫","detail":"直接冷食有李斯特菌风险；无法加热的散装熟食孕期少选。","tags":["冷藏","李斯特菌"]},
+
+  {"name":"食盐","aliases":["碘盐","海盐"],"category":"调味品","status":"limit","summary":"正常烹调可以，注意总钠","detail":"优先使用合格碘盐，不需要购买昂贵“孕妇盐”；少吃重口味加工食品。","tags":["钠","碘"]},
+  {"name":"酱油","aliases":["生抽","老抽"],"category":"调味品","status":"limit","summary":"少量调味可以","detail":"主要注意钠含量；“酱油会让宝宝皮肤变黑”没有依据。","tags":["钠","调味"]},
+  {"name":"醋","aliases":["陈醋","白醋","米醋"],"category":"调味品","status":"safe","summary":"正常调味可以","detail":"不能靠喝醋软化血管或杀菌；反酸时减少用量。","tags":["调味","酸味"]},
+  {"name":"味精与鸡精","aliases":["谷氨酸钠","鸡粉"],"category":"调味品","status":"limit","summary":"正常少量调味可以","detail":"合规产品在普通烹调量下无需因孕期完全禁用；同时注意钠。","tags":["钠","调味"]},
+  {"name":"辣椒","aliases":["辣椒粉","辣酱"],"category":"调味品","status":"limit","summary":"能耐受可以少量吃","detail":"辣椒不会直接伤害胎儿，但可能加重反酸、痔疮或胃肠不适。","tags":["辛辣","胃肠"]},
+  {"name":"花椒与胡椒","aliases":["黑胡椒","白胡椒","花椒粉"],"category":"调味品","status":"safe","summary":"正常调味量可以","detail":"没有必要因孕期完全忌口；胃肠不适时减量。","tags":["香辛料","调味"]},
+  {"name":"芝麻油","aliases":["香油","麻油"],"category":"调味品","status":"safe","summary":"正常调味可以","detail":"属于油脂，少量即可；注意是否对芝麻过敏。","tags":["油脂","调味"]},
+  {"name":"蜂蜜","aliases":["槐花蜜","百花蜜"],"category":"调味品","status":"safe","summary":"孕妇可以吃，注意糖量","detail":"婴儿肉毒杆菌风险的限制针对一岁以下婴儿，不是孕妇；糖尿病或血糖异常者遵医嘱。","tags":["糖","调味"]},
+  {"name":"蛋黄酱","aliases":["沙拉酱","美乃滋"],"category":"调味品","status":"limit","summary":"选用巴氏杀菌蛋制成的包装产品","detail":"自制生蛋黄酱和来源不明散装酱避免；开封后按标签冷藏。","tags":["鸡蛋","冷藏"]},
+  {"name":"料酒","aliases":["烹饪酒","黄酒调味"],"category":"调味品","status":"limit","summary":"少量用于充分加热的菜肴","detail":"酒精不会立刻全部挥发；避免含大量酒、短时间加热或出锅后淋酒的菜。","tags":["酒精","烹调"]},
+
+  {"name":"叶酸补充剂","aliases":["叶酸片","维生素B9"],"category":"补充剂与草本","status":"safe","summary":"孕早期应按指南持续补充","detail":"中国孕期膳食指导的常规建议为从孕前开始每天补充 400 μg；高风险人群可能需要不同剂量，必须由医生决定。不要自行叠加多种含叶酸产品。","tags":["补充剂","400μg"]},
+  {"name":"孕期复合维生素","aliases":["孕妇维生素","产前维生素"],"category":"补充剂与草本","status":"limit","summary":"按医生建议选择，不重复叠加","detail":"核对叶酸、铁、碘和维生素 A 形式；与强化奶粉、多种补充剂叠加可能超量。","tags":["补充剂","剂量"]},
+  {"name":"铁剂","aliases":["补铁片","硫酸亚铁"],"category":"补充剂与草本","status":"limit","summary":"缺铁或医生建议时使用","detail":"不要仅凭疲劳自行大剂量补铁；按医嘱服用并处理便秘、恶心等副作用。","tags":["补充剂","贫血"]},
+  {"name":"钙片","aliases":["补钙剂","碳酸钙"],"category":"补充剂与草本","status":"limit","summary":"按膳食情况和医生建议补充","detail":"不是剂量越大越好；与铁剂、甲状腺药等可能需要错开。","tags":["补充剂","钙"]},
+  {"name":"鱼油与DHA","aliases":["DHA胶囊","藻油DHA","Omega-3"],"category":"补充剂与草本","status":"limit","summary":"需要时选正规孕期产品","detail":"查看来源、剂量和第三方检测；不要用鱼肝油替代普通鱼油或藻油。","tags":["补充剂","DHA"]},
+  {"name":"鱼肝油","aliases":["鳕鱼肝油","cod liver oil"],"category":"补充剂与草本","status":"avoid","summary":"孕期不要自行服用","detail":"可能含较高视黄醇型维生素 A，过量会增加胎儿风险。","tags":["维生素A","补充剂"]},
+  {"name":"高剂量视黄醇型维生素A","aliases":["视黄醇","retinol","美容维A","高剂量维生素A"],"category":"补充剂与草本","status":"avoid","summary":"不要自行服用高剂量预成型维生素A","detail":"致畸风险主要与过量预成型维生素A（视黄醇及其酯）有关，并非所有含维生素A的孕期复合维生素都应禁用。核对形式和剂量；药物类维A酸必须严格遵医嘱。","tags":["视黄醇","剂量"]},
+  {"name":"蛋白粉","aliases":["乳清蛋白","植物蛋白粉"],"category":"补充剂与草本","status":"limit","summary":"通常不必额外补，使用前看配料","detail":"优先从食物获得蛋白质；避免含草本、兴奋剂或来源不明添加物的产品。","tags":["补充剂","蛋白质"]},
+  {"name":"益生菌补充剂","aliases":["益生菌粉","益生元"],"category":"补充剂与草本","status":"limit","summary":"多数人不必常规服用，先咨询医生","detail":"菌株、剂量和产品质量差异大，不能替代治疗；免疫问题者尤其需咨询。","tags":["补充剂","菌株"]},
+  {"name":"中药与中成药","aliases":["中草药","药膳包","安胎中药"],"category":"补充剂与草本","status":"avoid","summary":"不要自行服用","detail":"“天然”不等于孕期安全，可能影响胎儿、肝肾或与药物相互作用；必须由知晓孕情的医生开具。","tags":["草本","药物"]},
+  {"name":"阿胶与滋补膏方","aliases":["阿胶糕","固元膏","滋补膏"],"category":"补充剂与草本","status":"limit","summary":"不是孕期必需品，使用前咨询医生","detail":"常含较多糖，也可能叠加草本成分；不能替代贫血检查和规范补铁。","tags":["滋补品","高糖"]},
+  {"name":"人参与浓缩草本补品","aliases":["人参片","西洋参","参茶","草本胶囊"],"category":"补充剂与草本","status":"avoid","summary":"孕期不要自行使用浓缩制品","detail":"安全数据、剂量和相互作用不确定；食物中的普通调味量与浓缩补品不是一回事。","tags":["草本","安全资料不足"]}
+]
+  </script>
+
+  <script>
+    const foods = JSON.parse(document.getElementById("food-data").textContent);
+    window.foods = foods;
+
+    const statusLabels = {
+      safe: "放心吃",
+      limit: "谨慎吃",
+      avoid: "避免吃"
+    };
+
+    const categoryOrder = [
+      "主食杂粮", "肉禽", "蛋奶", "水产", "蔬菜菌菇", "水果",
+      "豆类坚果", "饮品", "零食甜品", "熟食外卖", "调味品", "补充剂与草本"
+    ];
+
+    const state = {
+      query: "",
+      status: "all",
+      category: "all",
+      visibleLimit: 24
+    };
+
+    const searchInput = document.getElementById("food-search");
+    const clearSearch = document.getElementById("clear-search");
+    const grid = document.getElementById("food-grid");
+    const count = document.getElementById("result-count");
+    const empty = document.querySelector("[data-empty-state]");
+    const loadMore = document.getElementById("load-more");
+    const categoryBar = document.getElementById("category-bar");
+
+    function normalizeText(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFKC")
+        .replace(/[\s·、，,。./\\()（）\-—_]/g, "");
+    }
+
+    function searchableText(food) {
+      return normalizeText([
+        food.name,
+        ...food.aliases,
+        food.category,
+        food.summary,
+        food.detail,
+        ...food.tags
+      ].join(" "));
+    }
+
+    function matchesFood(food) {
+      const query = normalizeText(state.query);
+      const queryMatch = !query || searchableText(food).includes(query);
+      const statusMatch = state.status === "all" || food.status === state.status;
+      const categoryMatch = state.category === "all" || food.category === state.category;
+      return queryMatch && statusMatch && categoryMatch;
+    }
+
+    function createFoodCard(food) {
+      const article = document.createElement("article");
+      article.className = "food-card";
+      article.dataset.foodCard = "";
+      article.dataset.status = food.status;
+
+      const top = document.createElement("div");
+      top.className = "card-top";
+      const heading = document.createElement("h3");
+      heading.className = "food-name";
+      heading.textContent = food.name;
+      const status = document.createElement("span");
+      status.className = `status status-${food.status}`;
+      status.textContent = statusLabels[food.status];
+      top.append(heading, status);
+
+      const summary = document.createElement("p");
+      summary.className = "food-summary";
+      summary.textContent = food.summary;
+      const detail = document.createElement("p");
+      detail.className = "food-detail";
+      detail.textContent = food.detail;
+
+      const meta = document.createElement("div");
+      meta.className = "food-meta";
+      [food.category, ...food.tags.slice(0, 2)].forEach((label) => {
+        const pill = document.createElement("span");
+        pill.className = "meta-pill";
+        pill.textContent = label;
+        meta.append(pill);
+      });
+
+      article.append(top, summary, detail, meta);
+      if (food.aliases.length) {
+        const aliases = document.createElement("p");
+        aliases.className = "aliases";
+        aliases.textContent = `也叫：${food.aliases.join("、")}`;
+        article.append(aliases);
+      }
+      return article;
+    }
+
+    function filterFoods() {
+      const filtered = foods.filter(matchesFood);
+      const searching = normalizeText(state.query).length > 0;
+      const shown = searching ? filtered : filtered.slice(0, state.visibleLimit);
+
+      grid.replaceChildren(...shown.map(createFoodCard));
+      empty.hidden = filtered.length !== 0;
+      grid.hidden = filtered.length === 0;
+      count.textContent = filtered.length
+        ? searching
+          ? `找到 ${filtered.length} 项`
+          : `共 ${filtered.length} 项，已显示 ${shown.length} 项`
+        : "0 项结果";
+      loadMore.hidden = searching || shown.length >= filtered.length;
+      clearSearch.classList.toggle("visible", searching);
+      document.title = searching
+        ? `${state.query}｜孕期饮食速查`
+        : "孕期饮食速查｜常见食物能不能吃";
+    }
+
+    function setPressed(buttons, activeButton) {
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button === activeButton));
+      });
+    }
+
+    function buildCategories() {
+      const all = document.createElement("button");
+      all.className = "category-button";
+      all.type = "button";
+      all.textContent = "全部品类";
+      all.dataset.category = "all";
+      all.setAttribute("aria-pressed", "true");
+      categoryBar.append(all);
+
+      categoryOrder.forEach((category) => {
+        const button = document.createElement("button");
+        button.className = "category-button";
+        button.type = "button";
+        button.textContent = category;
+        button.dataset.category = category;
+        button.setAttribute("aria-pressed", "false");
+        categoryBar.append(button);
+      });
+
+      categoryBar.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-category]");
+        if (!button) return;
+        state.category = button.dataset.category;
+        state.visibleLimit = 24;
+        setPressed([...categoryBar.querySelectorAll("button")], button);
+        filterFoods();
+      });
+    }
+
+    document.querySelector(".filters").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-status-filter]");
+      if (!button) return;
+      state.status = button.dataset.statusFilter;
+      state.visibleLimit = 24;
+      setPressed([...document.querySelectorAll("[data-status-filter]")], button);
+      filterFoods();
+    });
+
+    searchInput.addEventListener("input", () => {
+      state.query = searchInput.value.trim();
+      filterFoods();
+    });
+
+    clearSearch.addEventListener("click", () => {
+      searchInput.value = "";
+      state.query = "";
+      searchInput.focus();
+      filterFoods();
+    });
+
+    loadMore.addEventListener("click", () => {
+      state.visibleLimit += 24;
+      filterFoods();
+    });
+
+    window.normalizeText = normalizeText;
+    window.filterFoods = filterFoods;
+    buildCategories();
+    filterFoods();
+  </script>
+</body>
+</html>
