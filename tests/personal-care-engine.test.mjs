@@ -100,11 +100,13 @@ test("商品结论只由成分规则、类别规则和时效动态计算并分�
     names: { zh: ["维A醇"], en: ["Retinol"], inci: ["Retinol"], aliases: [] },
     status: "avoid",
     sourceIds: ["medical-retinol"],
+    reviewed: "2026-07-01",
   }];
   const categoryRules = [{
     id: "anti-aging-care",
     status: "consult",
     sourceIds: ["medical-anti-aging"],
+    reviewed: "2026-06-15",
   }];
 
   assert.deepEqual(plain(resolveProductSnapshot(snapshot, "2026-07-28", ingredientRules, categoryRules)), {
@@ -119,12 +121,59 @@ test("商品结论只由成分规则、类别规则和时效动态计算并分�
     },
     categoryRule: { id: "anti-aging-care", status: "consult" },
     medicalSourceIds: ["medical-retinol", "medical-anti-aging"],
+    medicalReviewed: "2026-06-15",
     overallStatus: "avoid",
   });
   assert.equal(
     resolveProductSnapshot(snapshot, "2026-07-28", ingredientRules, categoryRules).medicalSourceIds.includes(snapshot.formulaSourceUrl),
     false,
   );
+});
+
+test("真实商品快照按当前配方动态解析成分、类别、来源和状态", () => {
+  const { resolveProductSnapshot } = engine();
+  const fixtures = [
+    {
+      id: "differin-adapalene-gel-01-us-spl-v10",
+      status: "avoid",
+      ingredientRuleId: "adapalene",
+      categoryRuleId: "acne-care",
+    },
+    {
+      id: "cerave-acne-control-cleanser-us-spl-v1",
+      status: "limit",
+      ingredientRuleId: "salicylic-acid",
+      categoryRuleId: "acne-care",
+    },
+    {
+      id: "colgate-total-clean-mint-us-spl-v17",
+      status: "consult",
+      ingredientRuleId: "fluoride-toothpaste",
+      categoryRuleId: "fluoride-toothpaste",
+    },
+  ];
+
+  for (const fixture of fixtures) {
+    const snapshot = products.find(({ id }) => id === fixture.id);
+    const result = resolveProductSnapshot(snapshot, "2026-07-28", ingredientRules, categoryRules);
+    const ingredientRule = ingredientRules.find(({ id }) => id === fixture.ingredientRuleId);
+    const categoryRule = categoryRules.find(({ id }) => id === fixture.categoryRuleId);
+
+    assert.equal(result.overallStatus, fixture.status, `${fixture.id} 状态错误`);
+    assert.ok(
+      result.ingredientScan.matches.some(({ ruleId }) => ruleId === fixture.ingredientRuleId),
+      `${fixture.id} 未从真实配方命中 ${fixture.ingredientRuleId}`,
+    );
+    assert.ok(
+      ingredientRule.sourceIds.every((sourceId) => result.medicalSourceIds.includes(sourceId)),
+      `${fixture.id} 缺少成分医学来源`,
+    );
+    assert.ok(
+      categoryRule.sourceIds.every((sourceId) => result.medicalSourceIds.includes(sourceId)),
+      `${fixture.id} 缺少类别医学来源`,
+    );
+    assert.equal(result.medicalSourceIds.includes(snapshot.formulaSourceUrl), false);
+  }
 });
 
 test("商品成分数组把含逗号 INCI 作为单个法定名称精确匹配", () => {
@@ -239,5 +288,7 @@ test("商品快照在 365 天内有效，超过 365 天或缺少日期时降级"
   assert.equal(isSnapshotStale(stale, today), true);
   assert.equal(isSnapshotStale({}, today), true);
   assert.equal(isSnapshotStale({ formulaReviewed: "not-a-date" }, today), true);
+  assert.equal(isSnapshotStale({ formulaReviewed: "2026-02-29" }, today), true);
+  assert.equal(isSnapshotStale({ formulaReviewed: "2026-07-29" }, today), true);
   assert.equal(resolveProductSnapshot(stale, today, [], []).overallStatus, "consult");
 });

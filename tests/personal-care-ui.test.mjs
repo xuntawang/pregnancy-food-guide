@@ -5,6 +5,7 @@ import vm from "node:vm";
 import { extractScript, readIndexHtml } from "./helpers/load-site.mjs";
 
 const html = readIndexHtml();
+const styles = html.match(/<style>([\s\S]*?)<\/style>/i)?.[1] ?? "";
 
 function tagWithAttribute(tagName, attributeName, value) {
   const tags = html.match(new RegExp(`<${tagName}\\b[^>]*>`, "gi")) ?? [];
@@ -133,6 +134,28 @@ test("个护频道提供生活化搜索、九类快捷筛选和四种状态筛�
   assert.deepEqual(statuses, ["safe", "limit", "avoid", "consult"]);
   assert.ok(tagWithAttribute("p", "id", "personal-care-result-count"), "缺少个护结果数量");
   assert.ok(tagWithAttribute("div", "data-personal-care-empty", ""), "缺少个护无结果提示");
+});
+
+test("未知商品空状态引导用户粘贴包装成分表", () => {
+  const emptyState = html.match(/<div\b[^>]*data-personal-care-empty[^>]*>([\s\S]*?)<\/div>/i)?.[1] ?? "";
+  assert.match(emptyState, /(?:粘贴[^。；]*成分表|成分表[^。；]*粘贴)/);
+  assert.match(emptyState, /不认识的成分不会被当作“可以用”/);
+});
+
+test("移动端主要交互控件保持至少 44px 触控高度", () => {
+  assert.match(styles, /\.skip-link\s*\{[^}]*min-height:\s*44px/s);
+  assert.match(styles, /\.clear-search\s*\{[^}]*width:\s*44px;[^}]*height:\s*44px/s);
+  assert.match(styles, /\.filter-button,\s*\.category-button\s*\{[^}]*min-height:\s*44px/s);
+  assert.match(styles, /\.channel-switch button\s*\{[^}]*min-height:\s*44px/s);
+  assert.match(styles, /\.evidence-disclosure summary\s*\{[^}]*min-height:\s*44px/s);
+  assert.match(styles, /\.primary-button,\s*\.secondary-button\s*\{[^}]*min-height:\s*44px/s);
+});
+
+test("Chrome 搜索框只显示站点提供的单一清除按钮", () => {
+  assert.match(
+    styles,
+    /input\[type="search"\]::?-webkit-search-cancel-button\s*\{[^}]*-webkit-appearance:\s*none;[^}]*appearance:\s*none;/s,
+  );
 });
 
 test("成分表分析器需要用户明确操作并向辅助技术宣布结果", () => {

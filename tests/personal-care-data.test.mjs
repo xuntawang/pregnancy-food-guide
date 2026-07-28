@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { extractJsonScript, readIndexHtml } from "./helpers/load-site.mjs";
+import {
+  extractJsonScript,
+  loadPersonalCareEngine,
+  readIndexHtml,
+} from "./helpers/load-site.mjs";
 
 const html = readIndexHtml();
+const personalCareEngine = loadPersonalCareEngine(html);
 const sources = extractJsonScript(html, "personal-care-sources");
 const ingredients = extractJsonScript(html, "personal-care-ingredients");
 const procedures = extractJsonScript(html, "personal-care-procedures");
@@ -86,13 +91,10 @@ const conditionKeys = [
 ];
 
 function validDate(value) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value)
-    && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+  return Boolean(personalCareEngine.parseDate?.(value));
 }
 
-function normalizeAlias(value) {
-  return value.normalize("NFKC").trim().toLocaleLowerCase("zh-CN").replace(/\s+/g, " ");
-}
+const normalizeAlias = personalCareEngine.normalizeIngredientName;
 
 function hasMatchingConsumerStrongEvidence(rule, sourcesById) {
   const evidence = rule.sourceIds.map((sourceId) => sourcesById.get(sourceId));
@@ -133,6 +135,13 @@ test("来源台账数据具有唯一且可追溯的权威来源", () => {
   }
 });
 
+test("数据日期复用运行时严格解析并拒绝不存在的日历日期", () => {
+  assert.equal(personalCareEngine.parseDate?.("2026-07-28")?.toISOString(), "2026-07-28T00:00:00.000Z");
+  for (const invalid of ["2026-02-29", "2026-04-31", "2026-13-01", "2026-00-10"]) {
+    assert.equal(personalCareEngine.parseDate?.(invalid), null, `${invalid} 不应被接受`);
+  }
+});
+
 test("叙述性综述与系统综述的权威层级不可混标", () => {
   const narrativeReviewIds = [
     "pmc-skin-care-pregnancy",
@@ -148,6 +157,16 @@ test("叙述性综述与系统综述的权威层级不可混标", () => {
     ["cochrane-topical-corticosteroids"],
     "只有实际系统综述可标为 systematic-review",
   );
+});
+
+test("BOTOX Cosmetic 使用 2024 完整处方标签并准确记录修订日期", () => {
+  const source = sourceById.get("fda-botox-cosmetic-label");
+  assert.equal(source?.title, "BOTOX Cosmetic Prescribing Information");
+  assert.equal(
+    source?.url,
+    "https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/103000s5316s5319s5323s5326s5331lbl.pdf",
+  );
+  assert.equal(source?.publishedOrUpdated, "2024-10");
 });
 
 test("至少 80 条医学上可区分的成分规则满足完整数据契约", () => {
@@ -237,6 +256,33 @@ test("高风险或证据有限规则有来源且文案不作绝对化保证", ()
     assert.doesNotMatch(copy, forbiddenClaims, `${rule.id} 使用了绝对化文案`);
     if (["limit", "avoid", "consult"].includes(rule.status)) {
       assert.ok(rule.sourceIds.length > 0, `${rule.id} 缺少权威来源`);
+    }
+  }
+});
+
+test("替代方案不把另一条限制、避免或证据不足成分当作可用选项", () => {
+  const restrictedAliases = ingredients
+    .filter(({ status }) => ["limit", "avoid", "consult"].includes(status))
+    .flatMap((rule) => Object.values(rule.names).flat().map((name) => ({
+      ruleId: rule.id,
+      alias: normalizeAlias(name),
+    })))
+    .filter(({ alias }) => alias.length >= 2);
+
+  for (const rule of ingredients) {
+    for (const alternative of rule.alternatives) {
+      const normalized = normalizeAlias(alternative);
+      for (const { ruleId, alias } of restrictedAliases) {
+        if (!normalized.includes(alias)) continue;
+        const explicitlyExcluded = normalized.includes(`不含 ${alias}`)
+          || normalized.includes(`不含${alias}`)
+          || normalized.includes(`无 ${alias}`)
+          || normalized.includes(`无${alias}`);
+        assert.ok(
+          explicitlyExcluded,
+          `${rule.id} 的替代项“${alternative}”引入了受限规则 ${ruleId}`,
+        );
+      }
     }
   }
 });

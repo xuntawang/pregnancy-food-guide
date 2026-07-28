@@ -54,6 +54,9 @@
       z-index: 20;
       top: 8px;
       left: 8px;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
       padding: 8px 12px;
       transform: translateY(-150%);
       background: var(--surface);
@@ -192,12 +195,17 @@
       border-color: #5d9685;
     }
 
+    input[type="search"]::-webkit-search-cancel-button {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
     .clear-search {
       position: absolute;
       top: 50%;
       right: 10px;
-      width: 36px;
-      height: 36px;
+      width: 44px;
+      height: 44px;
       padding: 0;
       display: none;
       place-items: center;
@@ -224,7 +232,7 @@
     .filter-button,
     .category-button {
       flex: 0 0 auto;
-      min-height: 38px;
+      min-height: 44px;
       padding: 7px 13px;
       background: white;
       border: 1px solid var(--line);
@@ -504,7 +512,7 @@
 
     .channel-switch button {
       min-width: 72px;
-      min-height: 38px;
+      min-height: 44px;
       padding: 7px 16px;
       background: transparent;
       border: 0;
@@ -556,6 +564,7 @@
       position: relative;
       min-width: 0;
       padding: 20px;
+      overflow-wrap: anywhere;
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--radius);
@@ -630,10 +639,21 @@
     }
 
     .evidence-disclosure summary {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
       color: #0b655b;
       font-size: 14px;
       font-weight: 800;
       cursor: pointer;
+    }
+
+    .evidence-list a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .product-version {
@@ -699,7 +719,7 @@
 
     .primary-button,
     .secondary-button {
-      min-height: 43px;
+      min-height: 44px;
       padding: 8px 16px;
       border-radius: 999px;
       font-weight: 800;
@@ -909,8 +929,8 @@
         <div class="sources">
           <strong>内容核准依据</strong>
           <ul>
-            <li><a href="https://dg.cnsoc.org/article/04/hjgfxca3Ra69sKbvqDETbg.html">中国营养学会《中国孕妇、乳母膳食指南（2022）》核心信息</a></li>
-            <li><a href="https://www.jncq.gov.cn/gongkai/site_changqingquqwsjkjszqqfybjjhsyfwzxd/channel_jn_changqingquqwsjkjszqqfybjjhsyfwzxd_65d/doc_693fabb8d5e4131905c29d44.html">国内妇幼保健机构：备孕和孕期妇女膳食指南操作建议</a></li>
+            <li><a href="https://wjw.fj.gov.cn/ztzl/jkjy/jkzgxd/202206/t20220615_5930367.htm">省级卫生健康委：《中国居民膳食指南（2022）》核心推荐</a></li>
+            <li><a href="https://www.nhc.gov.cn/wjw/c100175/201909/63de6cd6fdff41b7ba58c97871be0896.shtml">国家卫生健康委：孕期合理膳食与均衡营养建议</a></li>
             <li><a href="https://www.cdc.gov/food-safety/foods/pregnant-women.html">美国疾病控制与预防中心（CDC）：孕妇更安全的食物选择</a></li>
             <li><a href="https://www.fda.gov/food/consumers/questions-answers-fdaepa-advice-about-eating-fish-those-who-might-become-or-are-pregnant-or">美国食品药品监督管理局（FDA）：孕期鱼类建议</a></li>
             <li><a href="https://www.fda.gov/food/people-risk-foodborne-illness/cooking-food-safety-moms-be">美国食品药品监督管理局（FDA）：孕期烹调与保存温度</a></li>
@@ -977,7 +997,7 @@
         <div id="personal-care-grid" class="personal-care-grid"></div>
         <div class="empty-state" data-personal-care-empty="" hidden>
           <strong>暂时没找到对应内容</strong>
-          <p>换用包装上的标准成分名或更具体的项目名；不认识的成分不会被当作“可以用”。</p>
+          <p>换用包装上的标准成分名或更具体的项目名，或把包装上的完整成分表粘贴到下方逐项核对；不认识的成分不会被当作“可以用”。</p>
         </div>
       </section>
 
@@ -1682,7 +1702,7 @@
     "id": "fda-sunscreen-monograph",
     "organization": "U.S. Food and Drug Administration",
     "title": "Over-the-Counter Monograph M020: Sunscreen Drug Products for Over-the-Counter Human Use",
-    "url": "https://dps-admin.fda.gov/omuf/sites/omuf/files/monograph-documents/2022-09/OTCMonograph_M020-SunscreenDrugProductsforOTCHumanUse09242021.pdf",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/omuf/monographs/OTCMonograph_M020-SunscreenDrugProductsforOTCHumanUse09242021.pdf",
     "publishedOrUpdated": "2021-09-24",
     "accessed": "2026-07-28",
     "topics": [
@@ -3024,9 +3044,9 @@
   {
     "id": "cdc-niosh-salon-reproductive-health",
     "organization": "CDC/NIOSH",
-    "title": "Researching Risk of Birth Defects Among Pregnant Nail Salon Workers and Hairdressers",
-    "url": "https://www.cdc.gov/niosh/blogs/2021/birth-defects-nail-hair.html",
-    "publishedOrUpdated": "2021-11-03",
+    "title": "Maternal occupation as a nail technician or hairdresser during pregnancy and birth defects, National Birth Defects Prevention Study, 1997–2011",
+    "url": "https://stacks.cdc.gov/view/cdc/226159/cdc_226159_DS1.pdf",
+    "publishedOrUpdated": "2021-06-30",
     "accessed": "2026-07-28",
     "topics": ["hairdressers", "nail-technicians", "occupational-exposure", "birth-defects"],
     "evidenceType": "occupational-pregnancy",
@@ -3068,9 +3088,9 @@
   {
     "id": "fda-botox-cosmetic-label",
     "organization": "U.S. Food and Drug Administration",
-    "title": "BOTOX Cosmetic Medication Guide",
-    "url": "https://www.fda.gov/media/77359/download",
-    "publishedOrUpdated": "",
+    "title": "BOTOX Cosmetic Prescribing Information",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/103000s5316s5319s5323s5326s5331lbl.pdf",
+    "publishedOrUpdated": "2024-10",
     "accessed": "2026-07-28",
     "topics": ["botulinum-toxin", "pregnancy", "injection"],
     "evidenceType": "drug-label",
@@ -3131,7 +3151,7 @@
     "id": "gap-elective-aesthetic-procedures-pregnancy",
     "organization": "项目证据复核记录",
     "title": "选择性注射及能量医美孕期直接证据检索缺口",
-    "url": "https://www.fda.gov/medical-devices/aesthetic-cosmetic-devices",
+    "url": "https://www.fda.gov/medical-devices/products-and-medical-procedures/aesthetic-cosmetic-devices",
     "publishedOrUpdated": "2026-07-28",
     "accessed": "2026-07-28",
     "topics": ["radiofrequency-treatment", "focused-ultrasound-lift", "intense-pulsed-light", "pigment-laser", "ablative-laser", "laser-hair-removal", "skin-booster-injection", "mesotherapy"],
@@ -3140,7 +3160,7 @@
     "searchDetails": {
       "searchedOn": "2026-07-28",
       "terms": ["pregnancy radiofrequency ultrasound IPL laser aesthetic procedure", "pregnancy skin booster mesotherapy injection", "FDA pregnancy aesthetic device labeling"],
-      "resources": ["https://www.fda.gov/medical-devices/aesthetic-cosmetic-devices", "https://www.fda.gov/radiation-emitting-products/surgical-and-therapeutic-products/medical-lasers", "https://pubmed.ncbi.nlm.nih.gov/28492048/"],
+      "resources": ["https://www.fda.gov/medical-devices/products-and-medical-procedures/aesthetic-cosmetic-devices", "https://www.fda.gov/radiation-emitting-products/surgical-and-therapeutic-products/medical-lasers", "https://pubmed.ncbi.nlm.nih.gov/28492048/"],
       "finding": "未检得足以确认这些纯选择性项目孕期安全性的直接人类证据；设备的一般风险、非电离属性或未报告危害均不能替代孕期安全证据，因此建议咨询并暂缓至孕后。"
     }
   }
@@ -3304,8 +3324,8 @@
       "brokenSkin": ""
     },
     "alternatives": [
-      "烟酰胺",
-      "维C衍生物"
+      "按说明局部使用壬二酸（用于祛痘或淡斑）",
+      "选择氧化锌或非喷雾二氧化钛防晒"
     ],
     "sourceIds": [
       "acog-skin-pregnancy",
@@ -3346,8 +3366,8 @@
       "brokenSkin": ""
     },
     "alternatives": [
-      "烟酰胺",
-      "壬二酸"
+      "按说明局部使用壬二酸（用于祛痘或淡斑）",
+      "选择氧化锌或非喷雾二氧化钛防晒"
     ],
     "sourceIds": [
       "acog-skin-pregnancy",
@@ -3391,8 +3411,8 @@
       "brokenSkin": ""
     },
     "alternatives": [
-      "胜肽",
-      "烟酰胺"
+      "选择不含维A类的基础保湿",
+      "选择氧化锌或非喷雾二氧化钛防晒"
     ],
     "sourceIds": [
       "acog-skin-pregnancy",
@@ -3672,9 +3692,8 @@
       "brokenSkin": ""
     },
     "alternatives": [
-      "壬二酸",
-      "维C衍生物",
-      "防晒"
+      "按说明局部使用壬二酸",
+      "选择氧化锌或非喷雾二氧化钛防晒"
     ],
     "sourceIds": [
       "pmc-skin-care-pregnancy",
@@ -7793,12 +7812,24 @@
           ...matchedRules.flatMap(({ sourceIds }) => Array.isArray(sourceIds) ? sourceIds : []),
           ...(Array.isArray(category?.sourceIds) ? category.sourceIds : []),
         ])];
+        const medicalReviewed = [...matchedRules, ...(category ? [category] : [])]
+          .map(({ reviewed }) => reviewed)
+          .filter((reviewed) => parseDate(reviewed))
+          .sort()[0] ?? null;
         const overallStatus = deriveOverallStatus([
           ingredientScan.overallStatus,
           ...(categoryRule?.status ? [categoryRule.status] : []),
           ...(stale ? ["consult"] : []),
         ]);
-        return { snapshot, stale, ingredientScan, categoryRule, medicalSourceIds, overallStatus };
+        return {
+          snapshot,
+          stale,
+          ingredientScan,
+          categoryRule,
+          medicalSourceIds,
+          medicalReviewed,
+          overallStatus
+        };
       }
 
       globalThis.personalCareEngine = Object.freeze({
@@ -7811,6 +7842,7 @@
         scanIngredientList,
         scanIngredientArray,
         deriveOverallStatus,
+        parseDate,
         isSnapshotStale,
         resolveProductSnapshot
       });
@@ -8355,7 +8387,7 @@
       formulaList.append(formulaItem);
       formulaDetails.append(formulaList);
       card.append(formulaDetails);
-      card.append(createEvidenceDisclosure(resolution.medicalSourceIds, item.formulaReviewed, "医学依据"));
+      card.append(createEvidenceDisclosure(resolution.medicalSourceIds, resolution.medicalReviewed, "医学依据"));
       return card;
     }
 
