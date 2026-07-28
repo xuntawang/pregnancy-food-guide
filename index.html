@@ -821,15 +821,15 @@
         <span class="brand-mark" aria-hidden="true">孕</span>
         <span>孕期生活速查</span>
       </div>
-      <nav class="channel-switch" aria-label="速查类型">
-        <button type="button" role="tab" aria-selected="true" aria-controls="food-channel" data-channel-target="food">饮食</button>
-        <button type="button" role="tab" aria-selected="false" aria-controls="personal-care-channel" data-channel-target="personal-care">个护</button>
+      <nav class="channel-switch" aria-label="速查类型" role="tablist">
+        <button id="channel-tab-food" type="button" role="tab" aria-selected="true" aria-controls="food-channel" tabindex="0" data-channel-target="food">饮食</button>
+        <button id="channel-tab-personal-care" type="button" role="tab" aria-selected="false" aria-controls="personal-care-channel" tabindex="-1" data-channel-target="personal-care">个护</button>
       </nav>
     </div>
   </header>
 
   <main>
-    <section id="food-channel" aria-labelledby="page-title" data-channel-panel="food">
+    <section id="food-channel" role="tabpanel" aria-labelledby="channel-tab-food" data-channel-panel="food">
     <section class="hero shell" aria-labelledby="page-title">
       <div class="hero-grid">
         <div>
@@ -924,7 +924,7 @@
     </section>
     </section>
 
-    <section id="personal-care-channel" aria-labelledby="personal-care-title" data-channel-panel="personal-care" hidden>
+    <section id="personal-care-channel" role="tabpanel" aria-labelledby="channel-tab-personal-care" data-channel-panel="personal-care" hidden>
       <section class="hero personal-care-hero shell">
         <p class="eyebrow">给孕早期家庭的日常查询工具</p>
         <h1 id="personal-care-title">这个成分或项目，<br>孕期怎么选？</h1>
@@ -7817,6 +7817,87 @@
     })();
   </script>
 
+  <script id="personal-care-ui-helpers">
+    (() => {
+      const CHANNELS = ["food", "personal-care"];
+      const SCANNER_INITIAL_MESSAGE = "输入成分表后，选择“开始分析”。";
+      const MAX_VISIBLE_UNRESOLVED = 30;
+
+      function normalizeChannel(channel) {
+        return channel === "personal-care" ? "personal-care" : "food";
+      }
+
+      function channelPresentation(activeChannel) {
+        const active = normalizeChannel(activeChannel);
+        return Object.fromEntries(CHANNELS.map((channel) => [
+          channel,
+          {
+            selected: channel === active,
+            tabIndex: channel === active ? 0 : -1,
+            panelHidden: channel !== active
+          }
+        ]));
+      }
+
+      function nextChannel(activeChannel, key) {
+        const active = normalizeChannel(activeChannel);
+        if (!["ArrowLeft", "ArrowRight"].includes(key)) return active;
+        const currentIndex = CHANNELS.indexOf(active);
+        const direction = key === "ArrowRight" ? 1 : -1;
+        return CHANNELS[(currentIndex + direction + CHANNELS.length) % CHANNELS.length];
+      }
+
+      function resetTransientState({
+        foodState,
+        personalCareState,
+        foodSearch,
+        personalCareSearch,
+        scannerInput,
+        scannerResult
+      }) {
+        Object.assign(foodState, {
+          query: "",
+          status: "all",
+          category: "all",
+          visibleLimit: 24
+        });
+        Object.assign(personalCareState, {
+          query: "",
+          status: "all",
+          category: "all"
+        });
+        foodSearch.value = "";
+        personalCareSearch.value = "";
+        scannerInput.value = "";
+        scannerResult.textContent = SCANNER_INITIAL_MESSAGE;
+      }
+
+      function scannerPresentation(scan) {
+        const tokens = Array.isArray(scan?.tokens) ? scan.tokens : [];
+        const matches = Array.isArray(scan?.matches) ? scan.matches : [];
+        const unresolved = Array.isArray(scan?.unresolved) ? scan.unresolved : [];
+        const unresolvedItems = unresolved.slice(0, MAX_VISIBLE_UNRESOLVED);
+        const unresolvedOmitted = Math.max(0, unresolved.length - unresolvedItems.length);
+        return {
+          summary: `共识别 ${tokens.length} 项；命中 ${matches.length} 项规则；${unresolved.length} 项未识别。`,
+          unresolvedItems,
+          unresolvedOmitted,
+          unresolvedNotice: unresolvedOmitted
+            ? `另有 ${unresolvedOmitted} 项未展示；请分段核对。`
+            : ""
+        };
+      }
+
+      globalThis.personalCareUIHelpers = Object.freeze({
+        scannerInitialMessage: SCANNER_INITIAL_MESSAGE,
+        channelPresentation,
+        nextChannel,
+        resetTransientState,
+        scannerPresentation
+      });
+    })();
+  </script>
+
   <script>
     const foods = JSON.parse(document.getElementById("food-data").textContent);
     window.foods = foods;
@@ -8041,6 +8122,7 @@
     const scannerInput = document.getElementById("ingredient-scanner-input");
     const scannerResult = document.getElementById("ingredient-scanner-result");
     const personalCareEngine = window.personalCareEngine;
+    const personalCareUIHelpers = window.personalCareUIHelpers;
     const ingredientAliasIndex = personalCareEngine.buildIngredientAliasIndex(personalCareIngredients);
 
     function makeElement(tagName, className, text) {
@@ -8301,22 +8383,6 @@
       personalCareClearSearch.classList.toggle("visible", Boolean(personalCareState.query));
     }
 
-    function resetPersonalCareSearch() {
-      personalCareSearch.value = "";
-      personalCareState.query = "";
-      personalCareState.status = "all";
-      personalCareState.category = "all";
-      setPressed(
-        [...document.querySelectorAll("[data-personal-care-status], [data-personal-care-status-all]")],
-        document.querySelector("[data-personal-care-status-all]")
-      );
-      setPressed(
-        [...document.querySelectorAll("[data-personal-care-category], [data-personal-care-category-all]")],
-        document.querySelector("[data-personal-care-category-all]")
-      );
-      renderPersonalCare();
-    }
-
     personalCareSearch.addEventListener("input", () => {
       personalCareState.query = personalCareSearch.value.trim();
       renderPersonalCare();
@@ -8370,13 +8436,14 @@
     });
 
     function renderScannerResult(scan) {
+      const presentation = personalCareUIHelpers.scannerPresentation(scan);
       const fragment = document.createDocumentFragment();
       fragment.append(makeElement(
         "strong",
         "",
         `综合建议：${personalCareStatusLabels[scan.overallStatus]}`
       ));
-      const summary = makeElement("p", "", `共识别 ${scan.tokens.length} 项；命中 ${scan.matches.length} 项规则；${scan.unresolved.length} 项未识别。`);
+      const summary = makeElement("p", "", presentation.summary);
       fragment.append(summary);
 
       if (scan.matches.length) {
@@ -8389,7 +8456,10 @@
         fragment.append(matches);
       }
       if (scan.unresolved.length) {
-        fragment.append(makeElement("p", "", `未识别项：${scan.unresolved.slice(0, 30).join("、")}。未知项不会被判为“可以用”。`));
+        fragment.append(makeElement("p", "", `未识别项：${presentation.unresolvedItems.join("、")}。未知项不会被判为“可以用”。`));
+      }
+      if (presentation.unresolvedNotice) {
+        fragment.append(makeElement("p", "stale-note", presentation.unresolvedNotice));
       }
       if (scan.truncated) {
         fragment.append(makeElement("p", "stale-note", "输入超过 200 项，结果已截断；请分段再次分析。"));
@@ -8408,7 +8478,7 @@
 
     document.getElementById("ingredient-scanner-clear").addEventListener("click", () => {
       scannerInput.value = "";
-      scannerResult.textContent = "输入成分表后，选择“开始分析”。";
+      scannerResult.textContent = personalCareUIHelpers.scannerInitialMessage;
       scannerInput.focus();
     });
 
@@ -8418,12 +8488,15 @@
       scannerInput.focus();
     });
 
-    function resetFoodSearch() {
-      searchInput.value = "";
-      state.query = "";
-      state.status = "all";
-      state.category = "all";
-      state.visibleLimit = 24;
+    function resetTransientState() {
+      personalCareUIHelpers.resetTransientState({
+        foodState: state,
+        personalCareState,
+        foodSearch: searchInput,
+        personalCareSearch,
+        scannerInput,
+        scannerResult
+      });
       setPressed(
         [...document.querySelectorAll("[data-status-filter]")],
         document.querySelector('[data-status-filter="all"]')
@@ -8432,19 +8505,30 @@
         [...categoryBar.querySelectorAll("button")],
         categoryBar.querySelector('[data-category="all"]')
       );
+      setPressed(
+        [...document.querySelectorAll("[data-personal-care-status], [data-personal-care-status-all]")],
+        document.querySelector("[data-personal-care-status-all]")
+      );
+      setPressed(
+        [...document.querySelectorAll("[data-personal-care-category], [data-personal-care-category-all]")],
+        document.querySelector("[data-personal-care-category-all]")
+      );
       filterFoods();
+      renderPersonalCare();
     }
 
     function setActiveChannel(requestedChannel, persist = true) {
       const channel = requestedChannel === "personal-care" ? "personal-care" : "food";
+      const presentation = personalCareUIHelpers.channelPresentation(channel);
       document.querySelectorAll("[data-channel-target]").forEach((button) => {
-        button.setAttribute("aria-selected", String(button.dataset.channelTarget === channel));
+        const tabState = presentation[button.dataset.channelTarget];
+        button.setAttribute("aria-selected", String(tabState.selected));
+        button.tabIndex = tabState.tabIndex;
       });
       document.querySelectorAll("[data-channel-panel]").forEach((panel) => {
-        panel.hidden = panel.dataset.channelPanel !== channel;
+        panel.hidden = presentation[panel.dataset.channelPanel].panelHidden;
       });
-      resetFoodSearch();
-      resetPersonalCareSearch();
+      resetTransientState();
       document.querySelector(".skip-link").href = channel === "food" ? "#results" : "#personal-care-results";
       document.title = channel === "food"
         ? "孕期饮食速查｜常见食物能不能吃"
@@ -8463,7 +8547,7 @@
       button.addEventListener("keydown", (event) => {
         if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
         event.preventDefault();
-        const target = button.dataset.channelTarget === "food" ? "personal-care" : "food";
+        const target = personalCareUIHelpers.nextChannel(button.dataset.channelTarget, event.key);
         const targetButton = document.querySelector(`[data-channel-target="${target}"]`);
         setActiveChannel(target);
         targetButton.focus();
@@ -8472,6 +8556,7 @@
 
     window.normalizeText = normalizeText;
     window.filterFoods = filterFoods;
+    window.resetPregnancyGuideTransientState = resetTransientState;
     buildCategories();
     filterFoods();
     renderPersonalCare();

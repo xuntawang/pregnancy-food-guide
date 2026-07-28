@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import vm from "node:vm";
 
-import { readIndexHtml } from "./helpers/load-site.mjs";
+import { extractScript, readIndexHtml } from "./helpers/load-site.mjs";
 
 const html = readIndexHtml();
 
@@ -23,19 +24,90 @@ function executableScripts(markup) {
     .join("\n");
 }
 
-test("统一页提供语义化双频道且默认显示饮食", () => {
+function loadUiHelpers() {
+  try {
+    const context = {};
+    vm.runInNewContext(extractScript(html, "personal-care-ui-helpers"), context);
+    return context.personalCareUIHelpers ?? null;
+  } catch {
+    return null;
+  }
+}
+
+const plain = (value) => JSON.parse(JSON.stringify(value));
+
+test("统一页提供完整 ARIA tabs 关系且默认只有饮食 tab 可顺序聚焦", () => {
   const switcher = html.match(/<nav\b[^>]*class=(["'])[^"']*\bchannel-switch\b[^"']*\1[^>]*aria-label=(["'])速查类型\2[^>]*>([\s\S]*?)<\/nav>/i);
   assert.ok(switcher, "缺少标为“速查类型”的频道导航");
+  assert.match(switcher[0], /\brole=(["'])tablist\1/i);
 
   const foodTab = tagWithAttribute("button", "data-channel-target", "food");
   const personalCareTab = tagWithAttribute("button", "data-channel-target", "personal-care");
   assert.match(foodTab ?? "", /\brole=(["'])tab\1/i);
+  assert.match(foodTab ?? "", /\bid=(["'])channel-tab-food\1/i);
+  assert.match(foodTab ?? "", /\baria-controls=(["'])food-channel\1/i);
   assert.match(foodTab ?? "", /\baria-selected=(["'])true\1/i);
+  assert.match(foodTab ?? "", /\btabindex=(["'])0\1/i);
   assert.match(personalCareTab ?? "", /\brole=(["'])tab\1/i);
+  assert.match(personalCareTab ?? "", /\bid=(["'])channel-tab-personal-care\1/i);
+  assert.match(personalCareTab ?? "", /\baria-controls=(["'])personal-care-channel\1/i);
   assert.match(personalCareTab ?? "", /\baria-selected=(["'])false\1/i);
+  assert.match(personalCareTab ?? "", /\btabindex=(["'])-1\1/i);
 
-  assert.ok(tagWithAttribute("section", "id", "food-channel"), "缺少饮食频道容器");
-  assert.match(tagWithAttribute("section", "id", "personal-care-channel") ?? "", /\bhidden\b/i);
+  const foodPanel = tagWithAttribute("section", "id", "food-channel");
+  const personalCarePanel = tagWithAttribute("section", "id", "personal-care-channel");
+  assert.match(foodPanel ?? "", /\brole=(["'])tabpanel\1/i);
+  assert.match(foodPanel ?? "", /\baria-labelledby=(["'])channel-tab-food\1/i);
+  assert.doesNotMatch(foodPanel ?? "", /\bhidden\b/i);
+  assert.match(personalCarePanel ?? "", /\brole=(["'])tabpanel\1/i);
+  assert.match(personalCarePanel ?? "", /\baria-labelledby=(["'])channel-tab-personal-care\1/i);
+  assert.match(personalCarePanel ?? "", /\bhidden\b/i);
+});
+
+test("频道状态模型同步 selected、roving tabindex 与面板隐藏状态", () => {
+  const helpers = loadUiHelpers();
+  assert.ok(helpers, "缺少可执行的个护 UI 辅助层");
+
+  assert.deepEqual(plain(helpers.channelPresentation("food")), {
+    food: { selected: true, tabIndex: 0, panelHidden: false },
+    "personal-care": { selected: false, tabIndex: -1, panelHidden: true },
+  });
+  assert.deepEqual(plain(helpers.channelPresentation("personal-care")), {
+    food: { selected: false, tabIndex: -1, panelHidden: true },
+    "personal-care": { selected: true, tabIndex: 0, panelHidden: false },
+  });
+  assert.equal(helpers.nextChannel("food", "ArrowRight"), "personal-care");
+  assert.equal(helpers.nextChannel("personal-care", "ArrowLeft"), "food");
+});
+
+test("频道 transient reset 清空搜索筛选与扫描结果且不调用 focus", () => {
+  const helpers = loadUiHelpers();
+  assert.ok(helpers, "缺少可执行的个护 UI 辅助层");
+  let focusCalls = 0;
+  const focusableField = (value) => ({ value, focus: () => { focusCalls += 1; } });
+  const foodState = { query: "咖啡", status: "limit", category: "饮品", visibleLimit: 72 };
+  const personalCareState = { query: "视黄醇", status: "avoid", category: "护肤" };
+  const foodSearch = focusableField("咖啡");
+  const personalCareSearch = focusableField("视黄醇");
+  const scannerInput = focusableField("Retinol, Mystery");
+  const scannerResult = { textContent: "综合建议：建议避免", focus: () => { focusCalls += 1; } };
+
+  helpers.resetTransientState({
+    foodState,
+    personalCareState,
+    foodSearch,
+    personalCareSearch,
+    scannerInput,
+    scannerResult,
+  });
+
+  assert.deepEqual(foodState, { query: "", status: "all", category: "all", visibleLimit: 24 });
+  assert.deepEqual(personalCareState, { query: "", status: "all", category: "all" });
+  assert.equal(foodSearch.value, "");
+  assert.equal(personalCareSearch.value, "");
+  assert.equal(scannerInput.value, "");
+  assert.equal(scannerResult.textContent, "输入成分表后，选择“开始分析”。");
+  assert.equal(focusCalls, 0);
 });
 
 test("个护频道提供生活化搜索、九类快捷筛选和四种状态筛选", () => {
@@ -74,6 +146,28 @@ test("成分表分析器需要用户明确操作并向辅助技术宣布结果",
   assert.match(liveRegion ?? "", /\baria-live=(["'])polite\1/i);
   assert.doesNotMatch(executableScripts(html), /navigator\.clipboard|clipboard\.read/i);
 });
+
+for (const [count, omitted] of [[35, 5], [200, 170]]) {
+  test(`成分表 UI 对 ${count} 个未知项明确说明未展示数量`, () => {
+    const helpers = loadUiHelpers();
+    assert.ok(helpers, "缺少可执行的个护 UI 辅助层");
+    const unresolved = Array.from({ length: count }, (_, index) => `unknown-${index + 1}`);
+    const presentation = helpers.scannerPresentation({
+      tokens: unresolved,
+      matches: [],
+      unresolved,
+      truncated: false,
+      overallStatus: "consult",
+    });
+
+    assert.equal(presentation.summary, `共识别 ${count} 项；命中 0 项规则；${count} 项未识别。`);
+    assert.equal(presentation.unresolvedItems.length, 30);
+    assert.equal(presentation.unresolvedItems[0], "unknown-1");
+    assert.equal(presentation.unresolvedItems[29], "unknown-30");
+    assert.equal(presentation.unresolvedOmitted, omitted);
+    assert.equal(presentation.unresolvedNotice, `另有 ${omitted} 项未展示；请分段核对。`);
+  });
+}
 
 test("个护说明区分证据、未知项与紧急或偶发情况", () => {
   assert.ok(tagWithAttribute("details", "data-evidence-disclosure", ""));
