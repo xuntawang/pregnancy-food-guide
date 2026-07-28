@@ -888,9 +888,10 @@
           matches,
           unresolved,
           truncated,
-          overallStatus: unresolved.length || truncated
-            ? "consult"
-            : deriveOverallStatus(matches.map(({ status }) => status)),
+          overallStatus: deriveOverallStatus([
+            ...matches.map(({ status }) => status),
+            ...(unresolved.length || truncated ? ["consult"] : []),
+          ]),
         };
       }
 
@@ -922,9 +923,11 @@
             ? snapshot.matches.map((match) => match.status)
             : [];
         const productStatus = snapshot?.categoryStatus ?? snapshot?.status;
-        const overallStatus = stale
-          ? "consult"
-          : deriveOverallStatus(productStatus ? [...ingredientStatuses, productStatus] : ingredientStatuses);
+        const overallStatus = deriveOverallStatus([
+          ...ingredientStatuses,
+          ...(productStatus ? [productStatus] : []),
+          ...(stale ? ["consult"] : []),
+        ]);
         return { snapshot, stale, overallStatus };
       }
 

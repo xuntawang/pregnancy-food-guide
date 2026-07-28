@@ -41,8 +41,15 @@ test("别名索引只允许精确命中，未知名称不会被默认判为安�
     matches: [{ token: "视黄醇", ruleId: "retinol", status: "avoid" }],
     unresolved: ["神秘成分"],
     truncated: false,
-    overallStatus: "consult",
+    overallStatus: "avoid",
   });
+
+  const truncated = scanIngredientList(
+    ["视黄醇", ...Array.from({ length: 200 }, (_, index) => `未知成分${index}`)].join("、"),
+    index,
+  );
+  assert.equal(truncated.truncated, true);
+  assert.equal(truncated.overallStatus, "avoid");
 });
 
 test("组合结论采用固定风险优先级", () => {
@@ -65,6 +72,8 @@ test("商品快照在 365 天内有效，失效或缺少日期时降级", () => 
   assert.equal(isSnapshotStale({}, today), true);
   assert.equal(isSnapshotStale({ checkedAt: "not-a-date" }, today), true);
   assert.deepEqual(plain(resolveProductSnapshot(stale, today)), { snapshot: stale, stale: true, overallStatus: "consult" });
+  assert.equal(resolveProductSnapshot({ ...stale, ingredientStatuses: ["avoid"] }, today).overallStatus, "avoid");
+  assert.equal(resolveProductSnapshot({ ...stale, categoryStatus: "avoid" }, today).overallStatus, "avoid");
   assert.deepEqual(plain(resolveProductSnapshot({ ...current, categoryStatus: "limit", ingredientStatuses: ["safe", "consult"] }, today)), {
     snapshot: { ...current, categoryStatus: "limit", ingredientStatuses: ["safe", "consult"] },
     stale: false,
