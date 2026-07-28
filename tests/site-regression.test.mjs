@@ -27,6 +27,13 @@ test("extractScript 接受标准 JavaScript MIME 类型", () => {
   );
 });
 
+test("extractScript 接受带参数的 JavaScript MIME 类型", () => {
+  assert.equal(
+    extractScript('<script id="engine" type=" text/javascript; charset=utf-8 ">globalThis.ok = true;</script>', "engine"),
+    "globalThis.ok = true;",
+  );
+});
+
 for (const type of ["text/plain", "application/ld+json"]) {
   test(`extractScript 拒绝 ${type}`, () => {
     assert.throws(
@@ -35,6 +42,13 @@ for (const type of ["text/plain", "application/ld+json"]) {
     );
   });
 }
+
+test("extractScript 拒绝带参数的非 JavaScript MIME 类型", () => {
+  assert.throws(
+    () => extractScript('<script id="engine" type="application/ld+json; charset=utf-8">{}</script>', "engine"),
+    /不是可执行 JavaScript 脚本/,
+  );
+});
 
 test("extractScript 拒绝同 ID 的非可执行脚本冲突", () => {
   assert.throws(

@@ -29,7 +29,8 @@ function findScripts(html, id) {
 
 function isExecutableJavaScript(attributes) {
   const type = getAttribute(attributes, "type");
-  return type === undefined || javaScriptMimeTypes.has(type.trim().toLowerCase());
+  const mimeEssence = type?.split(";", 1)[0].trim().toLowerCase();
+  return type === undefined || javaScriptMimeTypes.has(mimeEssence);
 }
 
 export function readIndexHtml() {
