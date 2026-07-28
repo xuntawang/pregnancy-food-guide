@@ -42,6 +42,24 @@ const safeEvidenceTypes = new Set([
   "pregnancy-teratology",
   "pregnancy-review",
 ]);
+const validEvidencePopulations = new Set([
+  "consumer-pregnancy",
+  "occupational-pregnancy",
+]);
+const validEvidenceRoutes = new Set([
+  "rinse-off",
+  "leave-on",
+  "scalp",
+  "inhalation",
+  "mucosal-local",
+  "oral-local",
+  "nail-topical",
+  "heat",
+  "massage",
+  "injection",
+  "skin-breaking",
+  "energy",
+]);
 const conditionKeys = [
   "rinseOff",
   "leaveOn",
@@ -311,6 +329,73 @@ test("项目状态结论不强于其孕期证据", () => {
       );
     }
   }
+});
+
+test("项目证据声明具有可机器核查的人群、途径、状态方向和精确项目关联", () => {
+  for (const source of sources) {
+    if (source.procedureClaims === undefined) continue;
+    assert.ok(Array.isArray(source.procedureClaims) && source.procedureClaims.length > 0, `${source.id} 的项目证据声明无效`);
+    for (const claim of source.procedureClaims) {
+      assert.ok(procedures.some(({ id }) => id === claim.procedureId), `${source.id} 关联不存在的项目 ${claim.procedureId}`);
+      assert.ok(validEvidencePopulations.has(claim.population), `${source.id}/${claim.procedureId} 的人群无效`);
+      assert.ok(Array.isArray(claim.route) && claim.route.length > 0, `${source.id}/${claim.procedureId} 缺少途径`);
+      assert.ok(claim.route.every((route) => validEvidenceRoutes.has(route)), `${source.id}/${claim.procedureId} 含无效途径`);
+      assert.ok(Array.isArray(claim.supportsStatus) && claim.supportsStatus.length > 0, `${source.id}/${claim.procedureId} 缺少状态方向`);
+      assert.ok(claim.supportsStatus.every((status) => validStatuses.has(status)), `${source.id}/${claim.procedureId} 含无效状态方向`);
+    }
+  }
+});
+
+test("所有消费者 safe、limit 和 avoid 结论均有同项目同途径的人群匹配来源", () => {
+  for (const rule of procedures.filter(({ status }) => ["safe", "limit", "avoid"].includes(status))) {
+    assert.ok(Array.isArray(rule.evidenceRoutes) && rule.evidenceRoutes.length > 0, `${rule.id} 缺少待匹配的证据途径`);
+    const claims = rule.sourceIds.flatMap((sourceId) => sourceById.get(sourceId)?.procedureClaims ?? []);
+    assert.ok(
+      claims.some((claim) => claim.procedureId === rule.id
+        && claim.population === "consumer-pregnancy"
+        && claim.supportsStatus.includes(rule.status)
+        && rule.evidenceRoutes.every((route) => claim.route.includes(route))),
+      `${rule.id} 的 ${rule.status} 仅有职业、一般监管、错误途径或错误状态方向证据`,
+    );
+  }
+});
+
+test("审查点名的消费者项目不能由宽泛或职业证据绕过契约", () => {
+  const expected = new Map([
+    ["facial-cleansing", { status: "consult", routes: ["rinse-off"] }],
+    ["makeup", { status: "consult", routes: ["leave-on"] }],
+    ["makeup-removal", { status: "consult", routes: ["rinse-off"] }],
+    ["hair-bleaching", { status: "limit", routes: ["scalp", "inhalation"] }],
+    ["hair-styling-spray", { status: "consult", routes: ["inhalation"] }],
+    ["intimate-wash", { status: "consult", routes: ["mucosal-local"] }],
+    ["regular-nail-polish", { status: "limit", routes: ["nail-topical", "inhalation"] }],
+    ["gel-manicure", { status: "limit", routes: ["nail-topical", "inhalation"] }],
+    ["nail-extensions", { status: "limit", routes: ["nail-topical", "inhalation"] }],
+    ["nail-polish-removal", { status: "limit", routes: ["nail-topical", "inhalation"] }],
+  ]);
+  const rulesById = new Map(procedures.map((rule) => [rule.id, rule]));
+  for (const [id, want] of expected) {
+    const rule = rulesById.get(id);
+    assert.equal(rule?.status, want.status, `${id} 状态未按证据范围修复`);
+    const claims = rule.sourceIds.flatMap((sourceId) => sourceById.get(sourceId)?.procedureClaims ?? []);
+    assert.ok(
+      claims.some((claim) => claim.procedureId === id
+        && claim.population === "consumer-pregnancy"
+        && claim.supportsStatus.includes(want.status)
+        && want.routes.every((route) => claim.route.includes(route))),
+      `${id} 缺少同人群、同项目、同途径、同状态方向的来源声明`,
+    );
+  }
+});
+
+test("桑拿与高热蒸汽按 MotherToBaby 的限制结论而非一概避免", () => {
+  const rule = procedures.find(({ id }) => id === "steam-sauna");
+  assert.equal(rule?.status, "limit");
+  assert.ok(rule.sourceIds.includes("mothertobaby-hyperthermia"));
+  assert.match(`${rule.summary} ${Object.values(rule.conditions).join(" ")}`, /温度/);
+  assert.match(`${rule.summary} ${Object.values(rule.conditions).join(" ")}`, /时长|时间/);
+  assert.match(`${rule.summary} ${Object.values(rule.conditions).join(" ")}`, /头晕|脱水/);
+  assert.match(`${rule.summary} ${Object.values(rule.conditions).join(" ")}`, /离开/);
 });
 
 test("选择性注射、破皮与能量医美在无直接孕期安全证据时先咨询并建议暂缓", () => {

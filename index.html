@@ -820,7 +820,11 @@
       "glycolic-acid"
     ],
     "evidenceType": "clinical-pregnancy",
-    "authorityLevel": "clinical-authority"
+    "authorityLevel": "clinical-authority",
+    "procedureClaims": [
+      {"procedureId": "sunscreen-use", "population": "consumer-pregnancy", "route": ["leave-on"], "supportsStatus": ["limit"]},
+      {"procedureId": "acne-care", "population": "consumer-pregnancy", "route": ["leave-on"], "supportsStatus": ["limit"]}
+    ]
   },
   {
     "id": "mothertobaby-topical-acne",
@@ -963,7 +967,13 @@
       "depilatories"
     ],
     "evidenceType": "pregnancy-review",
-    "authorityLevel": "narrative-review"
+    "authorityLevel": "narrative-review",
+    "procedureClaims": [
+      {"procedureId": "facial-moisturizing", "population": "consumer-pregnancy", "route": ["leave-on"], "supportsStatus": ["limit"]},
+      {"procedureId": "body-lotion", "population": "consumer-pregnancy", "route": ["leave-on"], "supportsStatus": ["limit"]},
+      {"procedureId": "depilatory-cream", "population": "consumer-pregnancy", "route": ["rinse-off"], "supportsStatus": ["limit"]},
+      {"procedureId": "self-tanning-lotion", "population": "consumer-pregnancy", "route": ["leave-on"], "supportsStatus": ["limit"]}
+    ]
   },
   {
     "id": "pmc-topical-products-pregnancy",
@@ -1012,7 +1022,10 @@
       "scalp"
     ],
     "evidenceType": "drug-label",
-    "authorityLevel": "formal-label"
+    "authorityLevel": "formal-label",
+    "procedureClaims": [
+      {"procedureId": "topical-minoxidil", "population": "consumer-pregnancy", "route": ["scalp", "leave-on"], "supportsStatus": ["avoid"]}
+    ]
   },
   {
     "id": "nhs-lidocaine-pregnancy",
@@ -1117,7 +1130,10 @@
       "pregnancy"
     ],
     "evidenceType": "clinical-pregnancy",
-    "authorityLevel": "clinical-authority"
+    "authorityLevel": "clinical-authority",
+    "procedureClaims": [
+      {"procedureId": "teeth-whitening", "population": "consumer-pregnancy", "route": ["oral-local"], "supportsStatus": ["avoid"]}
+    ]
   },
   {
     "id": "nhs-medicines-pregnancy",
@@ -1308,7 +1324,10 @@
       "pregnancy"
     ],
     "evidenceType": "clinical-pregnancy",
-    "authorityLevel": "clinical-authority"
+    "authorityLevel": "clinical-authority",
+    "procedureClaims": [
+      {"procedureId": "fluoride-toothpaste", "population": "consumer-pregnancy", "route": ["oral-local"], "supportsStatus": ["safe"]}
+    ]
   },
   {
     "id": "ada-fluoride",
@@ -2504,6 +2523,55 @@
     "authorityLevel": "clinical-authority"
   },
   {
+    "id": "mothertobaby-hyperthermia",
+    "organization": "MotherToBaby",
+    "title": "Fever / Hyperthermia",
+    "url": "https://mothertobaby.org/fact-sheets/hyperthermia-pregnancy/",
+    "publishedOrUpdated": "2025-02-01",
+    "accessed": "2026-07-28",
+    "topics": ["steam-sauna", "hot-bath", "hyperthermia", "pregnancy"],
+    "evidenceType": "pregnancy-teratology",
+    "authorityLevel": "teratology-service",
+    "procedureClaims": [
+      {"procedureId": "steam-sauna", "population": "consumer-pregnancy", "route": ["heat"], "supportsStatus": ["limit"]},
+      {"procedureId": "hot-bath", "population": "consumer-pregnancy", "route": ["heat"], "supportsStatus": ["limit"]}
+    ]
+  },
+  {
+    "id": "mothertobaby-hair-treatments",
+    "organization": "MotherToBaby",
+    "title": "Hair Treatments",
+    "url": "https://mothertobaby.org/fact-sheets/hair-treatments-pregnancy/",
+    "publishedOrUpdated": "2024-06-01",
+    "accessed": "2026-07-28",
+    "topics": ["hair-dye", "hair-bleaching", "hair-perming", "chemical-straightening", "pregnancy"],
+    "evidenceType": "pregnancy-teratology",
+    "authorityLevel": "teratology-service",
+    "procedureClaims": [
+      {"procedureId": "hair-dye", "population": "consumer-pregnancy", "route": ["scalp", "inhalation"], "supportsStatus": ["limit"]},
+      {"procedureId": "hair-bleaching", "population": "consumer-pregnancy", "route": ["scalp", "inhalation"], "supportsStatus": ["limit"]},
+      {"procedureId": "hair-perming", "population": "consumer-pregnancy", "route": ["scalp", "inhalation"], "supportsStatus": ["consult"]},
+      {"procedureId": "chemical-straightening", "population": "consumer-pregnancy", "route": ["scalp", "inhalation"], "supportsStatus": ["consult"]}
+    ]
+  },
+  {
+    "id": "mothertobaby-consumer-nail-treatments",
+    "organization": "MotherToBaby",
+    "title": "Nailing Down the Facts: Nail Treatment Safety in Pregnancy",
+    "url": "https://mothertobaby.org/baby-blog/nailing-down-the-facts-nail-treatment-safety-in-pregnancy/",
+    "publishedOrUpdated": "2025-01-02",
+    "accessed": "2026-07-28",
+    "topics": ["regular-nail-polish", "gel-manicure", "nail-extensions", "nail-polish-removal", "pregnancy"],
+    "evidenceType": "pregnancy-teratology",
+    "authorityLevel": "teratology-service",
+    "procedureClaims": [
+      {"procedureId": "regular-nail-polish", "population": "consumer-pregnancy", "route": ["nail-topical", "inhalation"], "supportsStatus": ["limit"]},
+      {"procedureId": "gel-manicure", "population": "consumer-pregnancy", "route": ["nail-topical", "inhalation"], "supportsStatus": ["limit"]},
+      {"procedureId": "nail-extensions", "population": "consumer-pregnancy", "route": ["nail-topical", "inhalation"], "supportsStatus": ["limit"]},
+      {"procedureId": "nail-polish-removal", "population": "consumer-pregnancy", "route": ["nail-topical", "inhalation"], "supportsStatus": ["limit"]}
+    ]
+  },
+  {
     "id": "acog-pregnancy-massage",
     "organization": "ACOG",
     "title": "Can I get a massage while pregnant?",
@@ -2512,7 +2580,10 @@
     "accessed": "2026-07-28",
     "topics": ["massage", "positioning", "pregnancy"],
     "evidenceType": "clinical-pregnancy",
-    "authorityLevel": "clinical-authority"
+    "authorityLevel": "clinical-authority",
+    "procedureClaims": [
+      {"procedureId": "prenatal-massage", "population": "consumer-pregnancy", "route": ["massage"], "supportsStatus": ["limit"]}
+    ]
   },
   {
     "id": "fda-sunless-tanners",
@@ -2620,14 +2691,26 @@
     "url": "https://mothertobaby.org/fact-sheets/",
     "publishedOrUpdated": "2026-07-28",
     "accessed": "2026-07-28",
-    "topics": ["facial-mask", "shampooing", "hair-conditioning", "dry-shampoo-spray", "lash-lift"],
+    "topics": ["facial-cleansing", "facial-mask", "makeup", "makeup-removal", "shampooing", "hair-conditioning", "hair-styling-spray", "dry-shampoo-spray", "intimate-wash", "lash-lift"],
     "evidenceType": "search-gap",
     "authorityLevel": "documented-gap",
+    "procedureClaims": [
+      {"procedureId": "facial-cleansing", "population": "consumer-pregnancy", "route": ["rinse-off"], "supportsStatus": ["consult"]},
+      {"procedureId": "facial-mask", "population": "consumer-pregnancy", "route": ["leave-on"], "supportsStatus": ["consult"]},
+      {"procedureId": "makeup", "population": "consumer-pregnancy", "route": ["leave-on"], "supportsStatus": ["consult"]},
+      {"procedureId": "makeup-removal", "population": "consumer-pregnancy", "route": ["rinse-off"], "supportsStatus": ["consult"]},
+      {"procedureId": "shampooing", "population": "consumer-pregnancy", "route": ["rinse-off"], "supportsStatus": ["consult"]},
+      {"procedureId": "hair-conditioning", "population": "consumer-pregnancy", "route": ["rinse-off", "leave-on"], "supportsStatus": ["consult"]},
+      {"procedureId": "hair-styling-spray", "population": "consumer-pregnancy", "route": ["inhalation"], "supportsStatus": ["consult"]},
+      {"procedureId": "dry-shampoo-spray", "population": "consumer-pregnancy", "route": ["inhalation"], "supportsStatus": ["consult"]},
+      {"procedureId": "intimate-wash", "population": "consumer-pregnancy", "route": ["mucosal-local"], "supportsStatus": ["consult"]},
+      {"procedureId": "lash-lift", "population": "consumer-pregnancy", "route": ["leave-on", "mucosal-local"], "supportsStatus": ["consult"]}
+    ],
     "searchDetails": {
       "searchedOn": "2026-07-28",
-      "terms": ["pregnancy facial mask cosmetic product safety", "pregnancy shampoo conditioner dry shampoo consumer exposure", "pregnancy lash lift perm solution"],
+      "terms": ["pregnancy facial cleansing makeup remover cosmetic safety", "pregnancy facial mask cosmetic product safety", "pregnancy shampoo conditioner hair spray dry shampoo consumer exposure", "pregnancy intimate wash external vulvar cleansing", "pregnancy lash lift perm solution"],
       "resources": ["https://www.acog.org/womens-health", "https://mothertobaby.org/fact-sheets/", "https://www.nhs.uk/pregnancy/keeping-well/medicines/", "https://www.fda.gov/cosmetics/resources-consumers-cosmetics/cosmetics-pregnancy"],
-      "finding": "这些类别均由具体配方、冲洗或驻留时间、吸入和皮肤完整性决定暴露；本次未检得足以把整个类别标为 safe、limit 或 avoid 的直接孕期人类结局资料，因此采用 consult 并要求核对具体产品。"
+      "finding": "这些类别均由具体配方、冲洗或驻留时间、吸入、黏膜接触和皮肤完整性决定暴露；本次未检得足以把整个类别标为 safe、limit 或 avoid 的同项目同途径孕期人类结局资料，因此采用 consult 并要求核对具体产品。"
     }
   },
   {
@@ -5990,12 +6073,12 @@
     "name": "面部清洁",
     "aliases": ["洗面奶", "洁面", "洗脸"],
     "category": "日常护肤",
-    "status": "limit",
-    "summary": "可按标签使用成分简单、温和的冲洗型洁面产品。",
-    "rationale": "项目类别本身不能代表每种配方都适合孕期；药用成分、香精和刺激性表活需另行核对。",
+    "status": "consult",
+    "summary": "冲洗型暴露较短，但整个洁面类别缺少同项目同途径的直接孕期结论；先核对具体配方。",
+    "rationale": "一般化妆品监管和宽泛环境暴露建议不能单独支持消费者孕期 limit；药用成分、香精和刺激性表活需另行核对。",
     "conditions": {"route": "冲洗型；用后彻底洗净", "skin": "湿疹、破损或明显刺痛时停用", "frequency": "避免为追求去油而过度清洁"},
     "alternatives": ["温水和温和无香洁面"],
-    "sourceIds": ["fda-cosmetics-pregnancy", "acog-toxic-chemicals-pregnancy"],
+    "sourceIds": ["fda-cosmetics-pregnancy", "acog-toxic-chemicals-pregnancy", "gap-formulation-defined-procedures-pregnancy"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6004,6 +6087,7 @@
     "aliases": ["面霜", "乳液", "保湿霜"],
     "category": "日常护肤",
     "status": "limit",
+    "evidenceRoutes": ["leave-on"],
     "summary": "可选择成分简单的保湿品，但驻留型产品应逐项核对活性成分。",
     "rationale": "一般化妆品监管不能证明所有复方产品的孕期安全性，尤其是兼具抗老、淡斑或祛痘宣称的产品。",
     "conditions": {"route": "驻留型；按标签薄涂", "skin": "破损皮肤或大面积皮炎时先咨询", "frequency": "按需使用，避免叠加多个功效精华"},
@@ -6017,6 +6101,7 @@
     "aliases": ["防晒霜", "防晒乳", "涂防晒"],
     "category": "日常护肤",
     "status": "limit",
+    "evidenceRoutes": ["leave-on"],
     "summary": "需要防晒；对配方有顾虑时可优先氧化锌或二氧化钛产品并配合遮挡。",
     "rationale": "防晒收益明确，但不同滤剂的孕期证据强度不同，不能把监管允许浓度直接当成孕期结论。",
     "conditions": {"route": "驻留型；按标签足量并补涂", "skin": "敏感或破损处选择低刺激配方", "frequency": "户外暴露时规律使用"},
@@ -6042,12 +6127,12 @@
     "name": "彩妆",
     "aliases": ["化妆", "粉底", "口红"],
     "category": "日常护肤",
-    "status": "limit",
-    "summary": "偶尔使用合规彩妆可按配方判断，避免来源不明和无完整标签产品。",
-    "rationale": "彩妆配方差异大；一般监管资料不能支持所有产品的一概安全结论。",
+    "status": "consult",
+    "summary": "彩妆配方和接触部位差异大，缺少整个类别同途径的直接孕期结论；先核对具体产品。",
+    "rationale": "一般监管和宽泛外用综述不能支持消费者彩妆类别的 limit 结论。",
     "conditions": {"route": "驻留型；唇部产品避免吞咽", "frequency": "减少不必要叠加", "skin": "刺激、皮疹或眼周感染时停用"},
     "alternatives": ["减少品类", "选择有完整成分表的正规产品"],
-    "sourceIds": ["fda-cosmetics-pregnancy", "nmpa-cosmetic-labels", "pmc-topical-products-pregnancy"],
+    "sourceIds": ["fda-cosmetics-pregnancy", "nmpa-cosmetic-labels", "pmc-topical-products-pregnancy", "gap-formulation-defined-procedures-pregnancy"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6055,12 +6140,12 @@
     "name": "卸妆",
     "aliases": ["卸妆油", "卸妆水", "卸妆膏"],
     "category": "日常护肤",
-    "status": "limit",
-    "summary": "可按说明短时使用并充分清洁，避免反复摩擦和刺激性配方。",
-    "rationale": "冲洗可减少驻留暴露，但眼唇黏膜、破损皮肤和复方活性成分仍需注意。",
+    "status": "consult",
+    "summary": "短时冲洗可减少暴露，但整个卸妆类别缺少同途径直接孕期结论；先核对具体配方。",
+    "rationale": "宽泛护肤综述不能单独支持消费者卸妆产品的 limit 结论，眼唇黏膜、破损皮肤和复方活性仍需注意。",
     "conditions": {"route": "短时接触后冲洗干净", "skin": "破损或刺激时停用", "frequency": "仅在需要卸妆时使用"},
     "alternatives": ["温和洁面", "减少难卸彩妆"],
-    "sourceIds": ["fda-cosmetics-pregnancy", "nmpa-safety-evaluation", "pmc-skin-care-pregnancy"],
+    "sourceIds": ["fda-cosmetics-pregnancy", "nmpa-safety-evaluation", "pmc-skin-care-pregnancy", "gap-formulation-defined-procedures-pregnancy"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6069,6 +6154,7 @@
     "aliases": ["痘痘护理", "祛痘产品", "痤疮治疗"],
     "category": "日常护肤",
     "status": "limit",
+    "evidenceRoutes": ["leave-on"],
     "summary": "先按具体活性成分判断；可与医生讨论壬二酸、过氧化苯甲酰等选项。",
     "rationale": "维A酸类应避免，水杨酸等需限制范围；医学必要的痤疮治疗不应因美容顾虑自行停药或拖延。",
     "conditions": {"route": "驻留型药用产品需逐项核对", "area": "先小面积", "skin": "破损或重度炎症时就医", "frequency": "使用最低有效频率"},
@@ -6147,11 +6233,12 @@
     "aliases": ["染头发", "染发剂", "永久染发"],
     "category": "头发头皮",
     "status": "limit",
+    "evidenceRoutes": ["scalp", "inhalation"],
     "summary": "现有资料提示个人偶尔使用暴露较低；可更谨慎地等到孕12周后并严格通风。",
     "rationale": "资料不能覆盖所有配方，且个人偶尔染发不能外推到美发师职业性高频混合暴露。",
     "conditions": {"trimester": "如希望更谨慎，可考虑孕12周后", "frequency": "降低频率", "ventilation": "良好通风并戴手套", "skin": "头皮破损或过敏时不要使用", "duration": "不超过标签时间", "occupational": "美发从业者高频暴露应与雇主和产科讨论工程控制及防护"},
     "alternatives": ["挑染或不接触头皮的方式", "暂缓染发"],
-    "sourceIds": ["nhs-hair-dye-pregnancy", "cdc-niosh-salon-reproductive-health"],
+    "sourceIds": ["mothertobaby-hair-treatments", "nhs-hair-dye-pregnancy", "cdc-niosh-salon-reproductive-health"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6160,11 +6247,12 @@
     "aliases": ["头发漂色", "漂粉", "漂头发"],
     "category": "头发头皮",
     "status": "limit",
+    "evidenceRoutes": ["scalp", "inhalation"],
     "summary": "个人偶尔漂发可按染发类暴露谨慎处理，重点避免刺激、吸入和头皮接触。",
-    "rationale": "直接孕期资料有限，漂粉中的过硫酸盐可刺激呼吸道；职业暴露频率和混合化学品更多。",
+    "rationale": "MotherToBaby 将漂发纳入头发处理并认为按说明正确使用时不预期显著增加出生缺陷风险；漂粉仍可刺激呼吸道，职业暴露频率和混合化学品更多。",
     "conditions": {"ventilation": "保持强通风，避免吸入粉尘", "skin": "头皮破损或灼痛时不要进行", "duration": "不超过标签规定时间", "occupational": "职业高频接触漂粉不能按个人偶发暴露判断"},
     "alternatives": ["不接触头皮的局部挑染", "暂缓漂发"],
-    "sourceIds": ["nhs-hair-dye-pregnancy", "cdc-niosh-salon-reproductive-health"],
+    "sourceIds": ["mothertobaby-hair-treatments", "cdc-niosh-salon-reproductive-health"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6198,12 +6286,12 @@
     "name": "定型喷雾",
     "aliases": ["发胶喷雾", "定型发胶", "头发喷雾"],
     "category": "头发头皮",
-    "status": "limit",
-    "summary": "偶尔少量使用时减少吸入并保持通风，气雾型不对着面部喷。",
-    "rationale": "喷雾产生吸入途径，不能按皮肤局部驻留暴露评估；配方和推进剂差异大。",
+    "status": "consult",
+    "summary": "定型喷雾的配方和吸入暴露差异大，缺少消费者同途径直接孕期结论；先核对具体产品。",
+    "rationale": "喷雾产生吸入途径，不能用一般化妆品资料或美发师职业研究支持消费者 limit。",
     "conditions": {"ventilation": "在通风处短喷，避免吸入喷雾", "frequency": "减少使用频率", "occupational": "发型师反复喷洒属于职业高频吸入暴露"},
     "alternatives": ["非气雾型定型产品", "减少定型"],
-    "sourceIds": ["fda-cosmetics-pregnancy", "cdc-niosh-salon-reproductive-health"],
+    "sourceIds": ["fda-cosmetics-pregnancy", "cdc-niosh-salon-reproductive-health", "gap-formulation-defined-procedures-pregnancy"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6225,6 +6313,7 @@
     "aliases": ["米诺地尔喷雾", "生发水", "米诺地尔酊"],
     "category": "头发头皮",
     "status": "avoid",
+    "evidenceRoutes": ["scalp", "leave-on"],
     "summary": "孕期不要自行使用外用米诺地尔；如为医疗需要应由医生评估。",
     "rationale": "正式药品标签不建议孕期使用，破损头皮和更高用量还可能增加系统吸收。",
     "conditions": {"route": "驻留型药物，不按普通护发品处理", "skin": "破损头皮可增加吸收", "frequency": "不要自行开始或继续疗程"},
@@ -6238,6 +6327,7 @@
     "aliases": ["牙膏", "氟化物牙膏", "防蛀牙膏"],
     "category": "口腔身体",
     "status": "safe",
+    "evidenceRoutes": ["oral-local"],
     "summary": "孕期可用含氟牙膏每日刷牙，按常规用量并吐出泡沫。",
     "rationale": "ACOG明确建议孕期每日两次使用含氟牙膏维护口腔健康。",
     "conditions": {"route": "口腔局部使用后吐出，不故意吞咽", "frequency": "每日两次常规刷牙"},
@@ -6264,6 +6354,7 @@
     "aliases": ["冷光美白", "美白牙贴", "漂白牙齿"],
     "category": "口腔身体",
     "status": "avoid",
+    "evidenceRoutes": ["oral-local"],
     "summary": "孕期和哺乳期不建议进行纯选择性牙齿美白。",
     "rationale": "NHS明确建议孕期或哺乳期不进行牙齿美白；这不同于不能延误的牙科治疗。",
     "conditions": {"route": "过氧化物接触牙龈和口腔黏膜", "frequency": "不要自行增加浓度或疗程"},
@@ -6290,6 +6381,7 @@
     "aliases": ["润肤乳", "身体霜", "保湿身体乳"],
     "category": "口腔身体",
     "status": "limit",
+    "evidenceRoutes": ["leave-on"],
     "summary": "可选择配方简单的身体乳，功效型或大面积长期使用需核对具体成分。",
     "rationale": "大面积驻留暴露不同于小面积短时使用，复方产品不能只凭类别判断。",
     "conditions": {"route": "驻留型；薄涂于需要部位", "area": "大面积每日使用时选择简单配方", "skin": "破损或皮炎时先咨询"},
@@ -6302,12 +6394,12 @@
     "name": "私处洗液",
     "aliases": ["女性洗液", "护理洗液", "阴部清洗液"],
     "category": "口腔身体",
-    "status": "limit",
-    "summary": "外阴日常清洁通常用温水即可；不冲洗阴道内部，药用产品需诊断后使用。",
-    "rationale": "香精、抗菌剂或酸碱调节产品可能刺激并扰乱局部环境，症状也可能提示需要治疗的感染。",
+    "status": "consult",
+    "summary": "外阴通常用温水清洁即可；私处洗液缺少同项目同途径直接孕期结论，先核对具体产品。",
+    "rationale": "一般化妆品或孕期用药通则不能支持消费者私处洗液的 limit 结论；香精、抗菌剂或酸碱调节产品可能刺激。",
     "conditions": {"route": "仅外阴外部短时冲洗，不作阴道灌洗", "skin": "瘙痒、异味、疼痛或破损时就医", "frequency": "避免反复高频清洗"},
     "alternatives": ["温水外部清洁", "有症状时就医检查"],
-    "sourceIds": ["fda-cosmetics-pregnancy", "nhs-medicines-pregnancy"],
+    "sourceIds": ["fda-cosmetics-pregnancy", "nhs-medicines-pregnancy", "gap-formulation-defined-procedures-pregnancy"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6316,6 +6408,7 @@
     "aliases": ["化学脱毛", "脱毛乳", "去毛膏"],
     "category": "口腔身体",
     "status": "limit",
+    "evidenceRoutes": ["rinse-off"],
     "summary": "可按标签偶尔、小面积、短时使用并彻底冲洗，先做皮试。",
     "rationale": "综述认为系统暴露较低，但碱性和巯基乙酸盐可引起刺激或化学灼伤。",
     "conditions": {"route": "冲洗型；到时立即彻底冲洗", "area": "先小面积测试", "skin": "破损、炎症或刚剃毛皮肤不用", "duration": "不得超过标签时间"},
@@ -6329,6 +6422,7 @@
     "aliases": ["美黑乳", "自晒黑", "DHA美黑霜"],
     "category": "口腔身体",
     "status": "limit",
+    "evidenceRoutes": ["leave-on"],
     "summary": "涂抹型可偶尔使用，但避免黏膜、破损皮肤和喷雾吸入。",
     "rationale": "孕期综述估计完整皮肤外用系统暴露较低；FDA只批准DHA外部使用，不包括吸入和黏膜暴露。",
     "conditions": {"route": "驻留型外用，不用于眼唇或黏膜", "skin": "破损皮肤不使用", "frequency": "偶尔使用，不高频大面积叠加"},
@@ -6342,11 +6436,12 @@
     "aliases": ["指甲油", "普通美甲", "涂甲油"],
     "category": "美甲美睫",
     "status": "limit",
-    "summary": "个人偶尔使用与职业暴露不同；选择正规产品并在强通风环境操作。",
-    "rationale": "MotherToBaby对美甲从业混合暴露的评估不能直接量化单次消费者风险，但溶剂吸入和皮肤接触仍应减少。",
+    "evidenceRoutes": ["nail-topical", "inhalation"],
+    "summary": "消费者常规美甲暴露量较小；选择正规产品并在通风环境操作。",
+    "rationale": "MotherToBaby 的消费者资料直接覆盖普通甲油并认为常规使用不预期增加孕期问题；从业者高频混合暴露仍需单独评估。",
     "conditions": {"ventilation": "开窗或局部排风，避免长时间闻气味", "skin": "甲周破损或感染时不做", "frequency": "减少频率", "occupational": "从业者高频接触需工程通风、手套和职业健康评估"},
     "alternatives": ["裸甲护理", "可撕拉甲贴"],
-    "sourceIds": ["mothertobaby-nail-salon", "cdc-niosh-nail-technicians", "fda-nail-products"],
+    "sourceIds": ["mothertobaby-consumer-nail-treatments", "mothertobaby-nail-salon", "cdc-niosh-nail-technicians", "fda-nail-products"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6355,11 +6450,12 @@
     "aliases": ["甲油胶", "凝胶美甲", "光疗美甲"],
     "category": "美甲美睫",
     "status": "limit",
-    "summary": "偶尔消费者使用应减少皮肤接触并通风；不要把从业者资料解读为完全无风险。",
-    "rationale": "未固化丙烯酸酯可致敏，操作还涉及溶剂和UV/LED固化；职业高频混合暴露更高。",
+    "evidenceRoutes": ["nail-topical", "inhalation"],
+    "summary": "消费者常规凝胶美甲可限制使用，重点避免未固化材料接触皮肤并保持通风。",
+    "rationale": "MotherToBaby 消费者资料覆盖凝胶和甲基丙烯酸酯暴露；其结论不覆盖UV/LED固化灯长期风险，职业高频混合暴露也需单独评估。",
     "conditions": {"ventilation": "保持局部排风", "skin": "甲周破损、过敏或感染时不做", "frequency": "延长间隔", "occupational": "职业高频暴露需局部排风和适当手套"},
     "alternatives": ["普通甲油短时使用", "裸甲"],
-    "sourceIds": ["mothertobaby-nail-salon", "cdc-niosh-nail-technicians", "fda-nail-products"],
+    "sourceIds": ["mothertobaby-consumer-nail-treatments", "mothertobaby-nail-salon", "cdc-niosh-nail-technicians", "fda-nail-products"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6368,11 +6464,12 @@
     "aliases": ["水晶甲", "丙烯酸延长甲", "建构延长"],
     "category": "美甲美睫",
     "status": "limit",
+    "evidenceRoutes": ["nail-topical", "inhalation"],
     "summary": "尽量减少纯美容延长甲；若进行须强通风、避免未固化材料接触皮肤。",
-    "rationale": "丙烯酸酯、胶和打磨粉尘可致敏或刺激，消费者偶发与美甲师职业高频暴露不可混同。",
+    "rationale": "MotherToBaby 消费者资料覆盖丙烯酸/凝胶甲并认为常规小量暴露不预期增加孕期问题；胶、打磨粉尘和职业高频暴露仍需另行控制。",
     "conditions": {"ventilation": "局部排风并控制打磨粉尘", "skin": "甲周破损、过敏或感染时不做", "frequency": "避免连续补甲", "occupational": "从业者高频暴露需工程控制和职业防护"},
     "alternatives": ["短甲护理", "可拆卸甲片"],
-    "sourceIds": ["mothertobaby-nail-salon", "cdc-niosh-nail-technicians", "fda-nail-products"],
+    "sourceIds": ["mothertobaby-consumer-nail-treatments", "mothertobaby-nail-salon", "cdc-niosh-nail-technicians", "fda-nail-products"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6381,11 +6478,12 @@
     "aliases": ["卸指甲油", "丙酮卸甲", "卸甲水"],
     "category": "美甲美睫",
     "status": "limit",
+    "evidenceRoutes": ["nail-topical", "inhalation"],
     "summary": "短时、局部卸甲并保持通风，避免浸泡过久和接触破损皮肤。",
-    "rationale": "丙酮等溶剂会刺激皮肤和呼吸道；职业反复使用的混合暴露高于偶尔消费者使用。",
+    "rationale": "MotherToBaby 消费者资料直接覆盖丙酮和乙腈卸甲，认为按常规使用时皮肤或肺吸收量小；职业反复混合溶剂暴露更高。",
     "conditions": {"ventilation": "通风并及时封闭溶剂容器", "skin": "甲周破损或皮炎时避免", "duration": "缩短浸泡和包裹时间", "occupational": "职业高频卸甲需局部排风和手套"},
     "alternatives": ["减少做甲频率", "由规范机构温和卸除"],
-    "sourceIds": ["mothertobaby-nail-salon", "cdc-niosh-solvents", "gap-acetone-pregnancy"],
+    "sourceIds": ["mothertobaby-consumer-nail-treatments", "mothertobaby-nail-salon", "cdc-niosh-solvents", "gap-acetone-pregnancy"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6471,12 +6569,13 @@
     "name": "蒸汽与桑拿",
     "aliases": ["汗蒸", "桑拿房", "蒸汽房"],
     "category": "美容与SPA",
-    "status": "avoid",
-    "summary": "孕期避免造成核心体温升高的桑拿、汗蒸和高热蒸汽环境。",
-    "rationale": "CDC指出孕期更易发生热病和脱水，核心体温升高与不良妊娠结局有关。",
-    "conditions": {"heat": "避免高热环境和核心体温升高", "duration": "不要以缩短时间替代对高热暴露的谨慎", "frequency": "不把出汗量当作安全指标"},
+    "status": "limit",
+    "evidenceRoutes": ["heat"],
+    "summary": "MotherToBaby 建议孕期限制热水池或桑拿；无法控制温度、时长或随时离开时不要进入。",
+    "rationale": "风险来自核心体温升高而非项目名称本身；CDC提示孕期更易热病和脱水，MotherToBaby支持限制使用而非一概避免。",
+    "conditions": {"heat": "选择可确认温度不过热的环境，避免核心体温升高", "duration": "缩短时长并确保可立即离开，不以大量出汗作为耐受标准", "symptoms": "出现头晕、心悸、恶心、过热或脱水迹象立即离开并降温补水"},
     "alternatives": ["常温放松", "温和淋浴"],
-    "sourceIds": ["cdc-heat-pregnancy"],
+    "sourceIds": ["mothertobaby-hyperthermia", "cdc-heat-pregnancy"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6485,11 +6584,12 @@
     "aliases": ["泡澡", "热水泡浴", "浴缸泡澡"],
     "category": "美容与SPA",
     "status": "limit",
+    "evidenceRoutes": ["heat"],
     "summary": "可选择温暖而非过热的短时泡浴，避免出汗、头晕或体温明显升高。",
     "rationale": "风险取决于水温、时长和个体散热；高热与脱水不能按普通洗浴处理。",
     "conditions": {"heat": "控制水温，避免体温升高和大量出汗", "duration": "短时并随时离开", "skin": "头晕、心悸或不适立即停止"},
     "alternatives": ["温水淋浴"],
-    "sourceIds": ["cdc-heat-pregnancy"],
+    "sourceIds": ["mothertobaby-hyperthermia", "cdc-heat-pregnancy"],
     "reviewed": "2026-07-28"
   },
   {
@@ -6498,6 +6598,7 @@
     "aliases": ["孕妇按摩", "产前按摩", "身体按摩"],
     "category": "美容与SPA",
     "status": "limit",
+    "evidenceRoutes": ["massage"],
     "summary": "一般可由了解孕期的合格人员进行，并采用合适体位。",
     "rationale": "ACOG支持孕期按摩放松，但高危妊娠、疼痛、出血或疑似血栓等情况需先医疗评估。",
     "conditions": {"trimester": "告知治疗师孕周和妊娠情况", "duration": "孕中晚期优先侧卧，避免长时间仰卧", "skin": "不按摩疼痛、红肿或疑似血栓部位"},
