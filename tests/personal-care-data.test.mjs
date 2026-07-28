@@ -24,6 +24,7 @@ const validAuthorityLevels = new Set([
   "teratology-service",
   "regulator",
   "systematic-review",
+  "narrative-review",
   "formal-label",
   "official-safety-committee",
   "documented-gap",
@@ -83,6 +84,23 @@ test("来源台账数据具有唯一且可追溯的权威来源", () => {
       assert.ok(source.searchDetails.finding?.trim(), `${source.id} 缺少检索结论`);
     }
   }
+});
+
+test("叙述性综述与系统综述的权威层级不可混标", () => {
+  const narrativeReviewIds = [
+    "pmc-skin-care-pregnancy",
+    "pmc-topical-products-pregnancy",
+    "pubmed-topical-antifungals",
+    "pubmed-cosmetic-procedures",
+  ];
+  for (const id of narrativeReviewIds) {
+    assert.equal(sourceById.get(id)?.authorityLevel, "narrative-review", `${id} 应标为 narrative-review`);
+  }
+  assert.deepEqual(
+    sources.filter(({ authorityLevel }) => authorityLevel === "systematic-review").map(({ id }) => id).sort(),
+    ["cochrane-topical-corticosteroids"],
+    "只有实际系统综述可标为 systematic-review",
+  );
 });
 
 test("至少 80 条医学上可区分的成分规则满足完整数据契约", () => {
