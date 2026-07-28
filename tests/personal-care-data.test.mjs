@@ -260,31 +260,50 @@ test("高风险或证据有限规则有来源且文案不作绝对化保证", ()
   }
 });
 
-test("替代方案不把另一条限制、避免或证据不足成分当作可用选项", () => {
-  const restrictedAliases = ingredients
+test("全部成分与项目的替代方案不命中任何受限成分或项目名称", () => {
+  const searchableRules = [
+    ...ingredients.map((rule) => ({
+      kind: "ingredient",
+      id: rule.id,
+      status: rule.status,
+      labels: Object.values(rule.names).flat(),
+      alternatives: rule.alternatives,
+    })),
+    ...procedures.map((rule) => ({
+      kind: "procedure",
+      id: rule.id,
+      status: rule.status,
+      labels: [rule.name, ...rule.aliases],
+      alternatives: rule.alternatives,
+    })),
+  ];
+  const restrictedAliases = searchableRules
     .filter(({ status }) => ["limit", "avoid", "consult"].includes(status))
-    .flatMap((rule) => Object.values(rule.names).flat().map((name) => ({
-      ruleId: rule.id,
-      alias: normalizeAlias(name),
-    })))
-    .filter(({ alias }) => alias.length >= 2);
+    .flatMap((rule) => rule.labels.map((label) => ({
+      kind: rule.kind,
+      id: rule.id,
+      status: rule.status,
+      alias: normalizeAlias(label),
+    })));
+  const collisions = [];
 
-  for (const rule of ingredients) {
+  for (const rule of searchableRules) {
     for (const alternative of rule.alternatives) {
       const normalized = normalizeAlias(alternative);
-      for (const { ruleId, alias } of restrictedAliases) {
-        if (!normalized.includes(alias)) continue;
-        const explicitlyExcluded = normalized.includes(`不含 ${alias}`)
-          || normalized.includes(`不含${alias}`)
-          || normalized.includes(`无 ${alias}`)
-          || normalized.includes(`无${alias}`);
-        assert.ok(
-          explicitlyExcluded,
-          `${rule.id} 的替代项“${alternative}”引入了受限规则 ${ruleId}`,
-        );
+      for (const target of restrictedAliases) {
+        if (!normalized.includes(target.alias)) continue;
+        collisions.push({
+          source: `${rule.kind}:${rule.id}`,
+          alternative,
+          target: `${target.kind}:${target.id}`,
+          status: target.status,
+          alias: target.alias,
+        });
       }
     }
   }
+
+  assert.deepEqual(collisions, []);
 });
 
 test("ACOG 点名成分按最高风险建议归类，法规浓度框架不冒充孕期结论", () => {
