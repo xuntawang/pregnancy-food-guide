@@ -14,6 +14,24 @@ test("保留现有孕期饮食速查", () => {
   for (const name of ["全熟鸡蛋", "巴氏杀菌或灭菌牛奶", "三文鱼", "咖啡", "生鱼片"]) {
     assert.ok(foods.some((food) => food.name === name), `缺少：${name}`);
   }
+
+  const keyFoods = new Map(foods.map((food) => [food.name, food]));
+  assert.deepEqual(
+    {
+      "全熟鸡蛋": keyFoods.get("全熟鸡蛋")?.status,
+      "巴氏杀菌或灭菌牛奶": keyFoods.get("巴氏杀菌或灭菌牛奶")?.status,
+      "三文鱼": keyFoods.get("三文鱼")?.status,
+      "咖啡": keyFoods.get("咖啡")?.status,
+      "生鱼片": keyFoods.get("生鱼片")?.status,
+    },
+    {
+      "全熟鸡蛋": "safe",
+      "巴氏杀菌或灭菌牛奶": "safe",
+      "三文鱼": "safe",
+      "咖啡": "limit",
+      "生鱼片": "avoid",
+    },
+  );
 });
 
 test("extractScript 接受省略 type 的脚本", () => {
