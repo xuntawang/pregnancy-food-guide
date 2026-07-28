@@ -60,6 +60,53 @@ test("别名索引只允许精确命中，未知名称不会被默认判为安�
   assert.equal(truncated.overallStatus, "avoid");
 });
 
+test("真实包装标签会剥离前缀、浓度和注记后精确命中规则", () => {
+  const { buildIngredientAliasIndex, scanIngredientList } = engine();
+  const index = buildIngredientAliasIndex(ingredientRules);
+
+  const mixedRisk = scanIngredientList("Retinol 1%, Salicylic Acid", index);
+  assert.deepEqual(
+    plain(mixedRisk.matches),
+    [
+      { token: "retinol 1%", ruleId: "retinol", status: "avoid" },
+      { token: "salicylic acid", ruleId: "salicylic-acid", status: "limit" },
+    ],
+  );
+  assert.equal(mixedRisk.overallStatus, "avoid");
+
+  const activeLabel = scanIngredientList(
+    "Active ingredient: Adapalene 0.1% w/w (topical gel)",
+    index,
+  );
+  assert.deepEqual(
+    plain(activeLabel.matches),
+    [{ token: "active ingredient: adapalene 0.1% w/w topical gel", ruleId: "adapalene", status: "avoid" }],
+  );
+  assert.equal(activeLabel.overallStatus, "avoid");
+});
+
+test("规则库中的含逗号 INCI 在文本成分表中保持为单项", () => {
+  const { buildIngredientAliasIndex, scanIngredientList } = engine();
+  const index = buildIngredientAliasIndex(ingredientRules);
+  const result = scanIngredientList("Water, Toluene-2,5-Diamine, Mystery Extract", index);
+
+  assert.deepEqual(plain(result.tokens), ["water", "toluene-2,5-diamine", "mystery extract"]);
+  assert.deepEqual(
+    plain(result.matches),
+    [{ token: "toluene-2,5-diamine", ruleId: "oxidative-hair-dye", status: "limit" }],
+  );
+  assert.equal(result.overallStatus, "limit");
+});
+
+test("包装格式支持不扩展为任意子串匹配", () => {
+  const { buildIngredientAliasIndex, matchIngredient, scanIngredientList } = engine();
+  const index = buildIngredientAliasIndex(ingredientRules);
+
+  assert.equal(matchIngredient("Retinology 1%", index), null);
+  assert.equal(matchIngredient("My Adapalene Booster", index), null);
+  assert.equal(scanIngredientList("Retinology 1%, My Adapalene Booster", index).overallStatus, "consult");
+});
+
 test("组合结论采用固定风险优先级", () => {
   const { deriveOverallStatus } = engine();
 
@@ -291,4 +338,26 @@ test("商品快照在 365 天内有效，超过 365 天或缺少日期时降级"
   assert.equal(isSnapshotStale({ formulaReviewed: "2026-02-29" }, today), true);
   assert.equal(isSnapshotStale({ formulaReviewed: "2026-07-29" }, today), true);
   assert.equal(resolveProductSnapshot(stale, today, [], []).overallStatus, "consult");
+});
+
+test("运行时今天取本地日历日并守住正负时区的 365/366 天边界", () => {
+  const { isSnapshotStale, localCalendarDate } = engine();
+  assert.equal(typeof localCalendarDate, "function");
+  const reviewed = { formulaReviewed: "2026-07-28" };
+
+  const utcPlusEightAfterMidnight = {
+    getFullYear: () => 2027,
+    getMonth: () => 6,
+    getDate: () => 29,
+  };
+  const negativeZoneBeforeMidnight = {
+    getFullYear: () => 2027,
+    getMonth: () => 6,
+    getDate: () => 28,
+  };
+
+  assert.equal(localCalendarDate(utcPlusEightAfterMidnight), "2027-07-29");
+  assert.equal(isSnapshotStale(reviewed, localCalendarDate(utcPlusEightAfterMidnight)), true);
+  assert.equal(localCalendarDate(negativeZoneBeforeMidnight), "2027-07-28");
+  assert.equal(isSnapshotStale(reviewed, localCalendarDate(negativeZoneBeforeMidnight)), false);
 });

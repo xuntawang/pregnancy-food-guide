@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#163f3b">
   <meta name="description" content="面向孕早期家庭的饮食与个护生活建议速查工具">
+  <meta name="pregnancy-guide-release" content="2026-07-28-final-fix">
   <title>孕期生活速查｜饮食与个护建议</title>
   <style>
     :root {
@@ -7645,6 +7646,7 @@
       const MAX_INGREDIENTS = 200;
       const STATUS_RANK = Object.freeze({ safe: 0, consult: 1, limit: 2, avoid: 3 });
       const DAY_MS = 24 * 60 * 60 * 1000;
+      const COMMA_SENTINEL = "\uE000";
 
       function normalizeIngredientName(value) {
         return String(value ?? "")
@@ -7658,11 +7660,29 @@
           .toLowerCase();
       }
 
-      function splitIngredientList(value) {
+      function escapeRegExp(value) {
+        return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      }
+
+      function protectKnownCommaAliases(value, aliasIndex) {
+        let protectedValue = String(value ?? "").normalize("NFKC");
+        const commaAliases = Object.keys(aliasIndex ?? {})
+          .filter((alias) => alias.includes(","))
+          .sort((left, right) => right.length - left.length);
+        for (const alias of commaAliases) {
+          const flexibleAlias = escapeRegExp(alias).replace(/ /g, "\\s+");
+          protectedValue = protectedValue.replace(
+            new RegExp(flexibleAlias, "gi"),
+            (match) => match.replace(/,/g, COMMA_SENTINEL),
+          );
+        }
+        return protectedValue;
+      }
+
+      function splitIngredientList(value, aliasIndex) {
         const seen = new Set();
         const tokens = [];
-        const parts = String(value ?? "")
-          .normalize("NFKC")
+        const parts = protectKnownCommaAliases(value, aliasIndex)
           .replace(/[（]/g, "(")
           .replace(/[）]/g, ")")
           .replace(/(^|[\n\r])\s*\d+\s*[.)、]\s*/g, "$1")
@@ -7670,7 +7690,11 @@
           .split(/[、,，;；\n\r]+/);
 
         for (const part of parts) {
-          const token = normalizeIngredientName(part.replace(/^\s*\d+\s*[.)、]\s*/, ""));
+          const token = normalizeIngredientName(
+            part
+              .replaceAll(COMMA_SENTINEL, ",")
+              .replace(/^\s*\d+\s*[.)、]\s*/, ""),
+          );
           if (!token || seen.has(token)) continue;
           seen.add(token);
           if (tokens.length === MAX_INGREDIENTS) return { tokens, truncated: true };
@@ -7718,8 +7742,41 @@
         return aliasIndex?.[normalizeIngredientName(query)] ?? null;
       }
 
+      function stripIngredientLabelPrefix(value) {
+        return value.replace(
+          /^(?:(?:active|inactive|medicinal)\s+ingredients?|ingredients?|drug facts|成分表?|有效成分|活性成分|主要成分)\s*[:：]\s*/,
+          "",
+        );
+      }
+
+      function isPackagingQualifier(value) {
+        const qualifier = value.trim().replace(/^[\[\]{}()\s]+|[\[\]{}().,\s]+$/g, "");
+        if (!qualifier) return true;
+        const concentration = String.raw`\d+(?:\.\d+)?\s*(?:%|mg\/g|mg\/ml|mcg\/g|µg\/g|ppm)`;
+        const note = String.raw`(?:w\/w|w\/v|v\/v|topical|gel|cream|lotion|serum|solution|encapsulated|microencapsulated|usp|bp|leave-on|rinse-off)`;
+        return new RegExp(`^(?:${concentration})(?:\\s*${note})*$`, "i").test(qualifier)
+          || new RegExp(`^(?:${note})(?:\\s+${note})*$`, "i").test(qualifier);
+      }
+
       function matchIngredient(token, aliasIndex) {
-        const match = aliasIndex?.[normalizeIngredientName(token)];
+        const normalized = normalizeIngredientName(token);
+        const directMatch = aliasIndex?.[normalized];
+        if (directMatch) return { ruleId: directMatch.ruleId, status: directMatch.status };
+
+        const candidate = stripIngredientLabelPrefix(normalized)
+          .replace(/[\[\]{}()]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        const exactMatch = aliasIndex?.[candidate];
+        if (exactMatch) return { ruleId: exactMatch.ruleId, status: exactMatch.status };
+
+        const alias = Object.keys(aliasIndex ?? {})
+          .sort((left, right) => right.length - left.length)
+          .find((knownAlias) => (
+            candidate.startsWith(knownAlias)
+            && isPackagingQualifier(candidate.slice(knownAlias.length))
+          ));
+        const match = alias ? aliasIndex[alias] : null;
         return match ? { ruleId: match.ruleId, status: match.status } : null;
       }
 
@@ -7752,7 +7809,7 @@
       }
 
       function scanIngredientList(value, aliasIndex) {
-        const { tokens, truncated } = splitIngredientList(value);
+        const { tokens, truncated } = splitIngredientList(value, aliasIndex);
         return scanIngredientTokens(tokens, truncated, aliasIndex);
       }
 
@@ -7778,6 +7835,18 @@
         return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
           ? date
           : null;
+      }
+
+      function localCalendarDate(value = new Date()) {
+        const year = value?.getFullYear?.();
+        const month = value?.getMonth?.();
+        const day = value?.getDate?.();
+        if (![year, month, day].every(Number.isInteger)) return "";
+        return [
+          String(year).padStart(4, "0"),
+          String(month + 1).padStart(2, "0"),
+          String(day).padStart(2, "0"),
+        ].join("-");
       }
 
       function snapshotDate(snapshot) {
@@ -7843,6 +7912,7 @@
         scanIngredientArray,
         deriveOverallStatus,
         parseDate,
+        localCalendarDate,
         isSnapshotStale,
         resolveProductSnapshot
       });
@@ -8210,7 +8280,7 @@
     }
 
     function buildPersonalCareRecords() {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = personalCareEngine.localCalendarDate();
       return [
         ...personalCareIngredients.map((item) => ({
           kind: "ingredient",
