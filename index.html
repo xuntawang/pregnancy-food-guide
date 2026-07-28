@@ -803,6 +803,144 @@
 ]
   </script>
 
+  <script id="personal-care-sources" type="application/json">[]</script>
+  <script id="personal-care-ingredients" type="application/json">[]</script>
+  <script id="personal-care-products" type="application/json">[]</script>
+  <script id="personal-care-procedures" type="application/json">[]</script>
+
+  <script id="personal-care-engine">
+    (() => {
+      const MAX_INGREDIENTS = 200;
+      const STATUS_RANK = Object.freeze({ safe: 0, consult: 1, limit: 2, avoid: 3 });
+      const DAY_MS = 24 * 60 * 60 * 1000;
+
+      function normalizeIngredientName(value) {
+        return String(value ?? "")
+          .normalize("NFKC")
+          .replace(/[（]/g, "(")
+          .replace(/[）]/g, ")")
+          .replace(/\s+/g, " ")
+          .replace(/\(\s+/g, "(")
+          .replace(/\s+\)/g, ")")
+          .trim()
+          .toLowerCase();
+      }
+
+      function splitIngredientList(value) {
+        const seen = new Set();
+        const tokens = [];
+        const parts = String(value ?? "")
+          .normalize("NFKC")
+          .replace(/[（]/g, "(")
+          .replace(/[）]/g, ")")
+          .replace(/(^|[\n\r])\s*\d+\s*[.)、]\s*/g, "$1")
+          .replace(/[()]/g, " ")
+          .split(/[、,，;；\n\r]+/);
+
+        for (const part of parts) {
+          const token = normalizeIngredientName(part.replace(/^\s*\d+\s*[.)、]\s*/, ""));
+          if (!token || seen.has(token)) continue;
+          seen.add(token);
+          if (tokens.length === MAX_INGREDIENTS) return { tokens, truncated: true };
+          tokens.push(token);
+        }
+        return { tokens, truncated: false };
+      }
+
+      function buildIngredientAliasIndex(rules) {
+        const index = Object.create(null);
+        for (const rule of Array.isArray(rules) ? rules : []) {
+          if (!rule || !rule.id || !STATUS_RANK.hasOwnProperty(rule.status)) continue;
+          const aliases = [rule.name, rule.chineseName, rule.englishName, rule.inciName]
+            .concat(Array.isArray(rule.aliases) ? rule.aliases : []);
+          for (const alias of aliases) {
+            const key = normalizeIngredientName(alias);
+            if (key && !index[key]) index[key] = { ruleId: rule.id, status: rule.status };
+          }
+        }
+        return index;
+      }
+
+      function matchIngredient(token, aliasIndex) {
+        const match = aliasIndex?.[normalizeIngredientName(token)];
+        return match ? { ruleId: match.ruleId, status: match.status } : null;
+      }
+
+      function deriveOverallStatus(statuses) {
+        let overall = "safe";
+        for (const status of Array.isArray(statuses) ? statuses : []) {
+          if (STATUS_RANK[status] > STATUS_RANK[overall]) overall = status;
+        }
+        return overall;
+      }
+
+      function scanIngredientList(value, aliasIndex) {
+        const { tokens, truncated } = splitIngredientList(value);
+        const matches = [];
+        const unresolved = [];
+        for (const token of tokens) {
+          const match = matchIngredient(token, aliasIndex);
+          if (match) matches.push({ token, ...match });
+          else unresolved.push(token);
+        }
+        return {
+          tokens,
+          matches,
+          unresolved,
+          truncated,
+          overallStatus: unresolved.length || truncated
+            ? "consult"
+            : deriveOverallStatus(matches.map(({ status }) => status)),
+        };
+      }
+
+      function parseDate(value) {
+        if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+        const [year, month, day] = value.split("-").map(Number);
+        const date = new Date(Date.UTC(year, month - 1, day));
+        return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+          ? date
+          : null;
+      }
+
+      function snapshotDate(snapshot) {
+        return snapshot?.checkedAt ?? snapshot?.verifiedAt ?? snapshot?.reviewedAt ?? snapshot?.lastReviewedAt;
+      }
+
+      function isSnapshotStale(snapshot, currentDate) {
+        const reviewed = parseDate(snapshotDate(snapshot));
+        const today = parseDate(currentDate);
+        if (!reviewed || !today || reviewed > today) return true;
+        return (today - reviewed) / DAY_MS > 365;
+      }
+
+      function resolveProductSnapshot(snapshot, currentDate) {
+        const stale = isSnapshotStale(snapshot, currentDate);
+        const ingredientStatuses = Array.isArray(snapshot?.ingredientStatuses)
+          ? snapshot.ingredientStatuses
+          : Array.isArray(snapshot?.matches)
+            ? snapshot.matches.map((match) => match.status)
+            : [];
+        const productStatus = snapshot?.categoryStatus ?? snapshot?.status;
+        const overallStatus = stale
+          ? "consult"
+          : deriveOverallStatus(productStatus ? [...ingredientStatuses, productStatus] : ingredientStatuses);
+        return { snapshot, stale, overallStatus };
+      }
+
+      globalThis.personalCareEngine = Object.freeze({
+        normalizeIngredientName,
+        splitIngredientList,
+        buildIngredientAliasIndex,
+        matchIngredient,
+        scanIngredientList,
+        deriveOverallStatus,
+        isSnapshotStale,
+        resolveProductSnapshot
+      });
+    })();
+  </script>
+
   <script>
     const foods = JSON.parse(document.getElementById("food-data").textContent);
     window.foods = foods;
