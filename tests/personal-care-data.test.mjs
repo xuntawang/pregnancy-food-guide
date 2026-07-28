@@ -42,6 +42,19 @@ const safeEvidenceTypes = new Set([
   "pregnancy-teratology",
   "pregnancy-review",
 ]);
+const consumerStrongEvidenceTypes = new Set([
+  "clinical-pregnancy",
+  "pregnancy-teratology",
+  "drug-label",
+  "pregnancy-review",
+]);
+const consumerStrongAuthorityLevels = new Set([
+  "clinical-authority",
+  "teratology-service",
+  "systematic-review",
+  "narrative-review",
+  "formal-label",
+]);
 const validEvidencePopulations = new Set([
   "consumer-pregnancy",
   "occupational-pregnancy",
@@ -78,6 +91,20 @@ function validDate(value) {
 
 function normalizeAlias(value) {
   return value.normalize("NFKC").trim().toLocaleLowerCase("zh-CN").replace(/\s+/g, " ");
+}
+
+function hasMatchingConsumerStrongEvidence(rule, sourcesById) {
+  const evidence = rule.sourceIds.map((sourceId) => sourcesById.get(sourceId));
+  const eligibleEvidenceTypes = rule.status === "safe"
+    ? safeEvidenceTypes
+    : consumerStrongEvidenceTypes;
+  return evidence.some((source) => source
+    && eligibleEvidenceTypes.has(source.evidenceType)
+    && consumerStrongAuthorityLevels.has(source.authorityLevel)
+    && (source.procedureClaims ?? []).some((claim) => claim.procedureId === rule.id
+      && claim.population === "consumer-pregnancy"
+      && claim.supportsStatus.includes(rule.status)
+      && rule.evidenceRoutes.every((route) => claim.route.includes(route))));
 }
 
 test("来源台账数据具有唯一且可追溯的权威来源", () => {
@@ -349,15 +376,44 @@ test("项目证据声明具有可机器核查的人群、途径、状态方向�
 test("所有消费者 safe、limit 和 avoid 结论均有同项目同途径的人群匹配来源", () => {
   for (const rule of procedures.filter(({ status }) => ["safe", "limit", "avoid"].includes(status))) {
     assert.ok(Array.isArray(rule.evidenceRoutes) && rule.evidenceRoutes.length > 0, `${rule.id} 缺少待匹配的证据途径`);
-    const claims = rule.sourceIds.flatMap((sourceId) => sourceById.get(sourceId)?.procedureClaims ?? []);
     assert.ok(
-      claims.some((claim) => claim.procedureId === rule.id
-        && claim.population === "consumer-pregnancy"
-        && claim.supportsStatus.includes(rule.status)
-        && rule.evidenceRoutes.every((route) => claim.route.includes(route))),
+      hasMatchingConsumerStrongEvidence(rule, sourceById),
       `${rule.id} 的 ${rule.status} 仅有职业、一般监管、错误途径或错误状态方向证据`,
     );
   }
+});
+
+test("消费者强结论不能拼接一般监管声明与不相关职业孕期证据", () => {
+  const rule = {
+    id: "synthetic-consumer-procedure",
+    status: "limit",
+    evidenceRoutes: ["inhalation"],
+    sourceIds: ["general-regulation-with-claim", "unrelated-occupational-source"],
+  };
+  const fixtureSources = new Map([
+    ["general-regulation-with-claim", {
+      evidenceType: "general-regulation",
+      authorityLevel: "regulator",
+      procedureClaims: [{
+        procedureId: "synthetic-consumer-procedure",
+        population: "consumer-pregnancy",
+        route: ["inhalation"],
+        supportsStatus: ["limit"],
+      }],
+    }],
+    ["unrelated-occupational-source", {
+      evidenceType: "occupational-pregnancy",
+      authorityLevel: "teratology-service",
+      procedureClaims: [{
+        procedureId: "different-procedure",
+        population: "occupational-pregnancy",
+        route: ["inhalation"],
+        supportsStatus: ["limit"],
+      }],
+    }],
+  ]);
+
+  assert.equal(hasMatchingConsumerStrongEvidence(rule, fixtureSources), false);
 });
 
 test("审查点名的消费者项目不能由宽泛或职业证据绕过契约", () => {
