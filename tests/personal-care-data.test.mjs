@@ -171,6 +171,15 @@ test("至少 80 条医学上可区分的成分规则满足完整数据契约", (
     assert.deepEqual(Object.keys(rule.conditions).sort(), [...conditionKeys].sort(), `${rule.id} 限制条件结构无效`);
     assert.ok(Array.isArray(rule.alternatives), `${rule.id} 替代方案必须是数组`);
     assert.ok(Array.isArray(rule.sourceIds) && rule.sourceIds.length > 0, `${rule.id} 缺少权威来源`);
+    if (rule.applicableProcedureIds !== undefined) {
+      assert.ok(
+        Array.isArray(rule.applicableProcedureIds) && rule.applicableProcedureIds.length > 0,
+        `${rule.id} 的适用场景必须是非空数组`,
+      );
+      for (const procedureId of rule.applicableProcedureIds) {
+        assert.ok(procedures.some(({ id }) => id === procedureId), `${rule.id} 关联不存在的适用场景 ${procedureId}`);
+      }
+    }
     for (const sourceId of rule.sourceIds) {
       assert.ok(sourceIds.has(sourceId), `${rule.id} 引用了不存在的来源 ${sourceId}`);
     }
@@ -547,4 +556,11 @@ test("商品完整名称和普通搜索别名规范化后不冲突", () => {
       claimed.set(alias, product.id);
     }
   }
+});
+
+test("Colgate 商品使用当前标签完整名且简化名称保留为别名", () => {
+  const colgate = products.find(({ id }) => id === "colgate-total-clean-mint-us-spl-v17");
+
+  assert.equal(colgate.name, "COLGATE TOTAL SF CLEAN MINT");
+  assert.ok(colgate.aliases.includes("Colgate Total Clean Mint Toothpaste"));
 });

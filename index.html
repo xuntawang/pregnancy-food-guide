@@ -5080,6 +5080,9 @@
     },
     "family": "chemical-depilatories",
     "category": "脱毛与止汗",
+    "applicableProcedureIds": [
+      "depilatory-cream"
+    ],
     "status": "limit",
     "summary": "合规脱毛膏可小面积按说明使用，先做皮试。",
     "rationale": "孕期综述未发现按规定浓度外用的明确风险，但人体系统吸收资料有限，且刺激是主要现实问题。",
@@ -5164,6 +5167,9 @@
     },
     "family": "chemical-depilatories",
     "category": "脱毛与止汗",
+    "applicableProcedureIds": [
+      "depilatory-cream"
+    ],
     "status": "limit",
     "summary": "按说明短时、小面积使用并彻底冲洗。",
     "rationale": "综述认为成品中接触量相对日常体内离子来源很低，但碱性刺激和化学灼伤仍需防范。",
@@ -6406,8 +6412,8 @@
   {
     "id": "colgate-total-clean-mint-us-spl-v17",
     "brand": "Colgate",
-    "name": "Colgate Total Clean Mint Toothpaste",
-    "aliases": ["高露洁全面防护清新薄荷牙膏", "Colgate Total Clean Mint"],
+    "name": "COLGATE TOTAL SF CLEAN MINT",
+    "aliases": ["高露洁全面防护清新薄荷牙膏", "Colgate Total Clean Mint", "Colgate Total Clean Mint Toothpaste"],
     "category": "口腔护理",
     "categoryRuleId": "fluoride-toothpaste",
     "formulaRegion": "美国",
@@ -7240,10 +7246,12 @@
         return { tokens, truncated: false };
       }
 
-      function buildIngredientAliasIndex(rules) {
+      function buildIngredientAliasIndex(rules, context = {}) {
         const index = Object.create(null);
         for (const rule of Array.isArray(rules) ? rules : []) {
           if (!rule || !rule.id || !STATUS_RANK.hasOwnProperty(rule.status)) continue;
+          if (Array.isArray(rule.applicableProcedureIds)
+            && !rule.applicableProcedureIds.includes(context?.categoryRuleId)) continue;
           const aliases = [rule.name, rule.chineseName, rule.englishName, rule.inciName]
             .concat(Array.isArray(rule.aliases) ? rule.aliases : [])
             .concat(rule.names && typeof rule.names === "object"
@@ -7290,8 +7298,7 @@
         return overall;
       }
 
-      function scanIngredientList(value, aliasIndex) {
-        const { tokens, truncated } = splitIngredientList(value);
+      function scanIngredientTokens(tokens, truncated, aliasIndex) {
         const matches = [];
         const unresolved = [];
         for (const token of tokens) {
@@ -7309,6 +7316,26 @@
             ...(unresolved.length || truncated ? ["consult"] : []),
           ]),
         };
+      }
+
+      function scanIngredientList(value, aliasIndex) {
+        const { tokens, truncated } = splitIngredientList(value);
+        return scanIngredientTokens(tokens, truncated, aliasIndex);
+      }
+
+      function scanIngredientArray(values, aliasIndex) {
+        const seen = new Set();
+        const tokens = [];
+        for (const value of Array.isArray(values) ? values : []) {
+          const token = normalizeIngredientName(value);
+          if (!token || seen.has(token)) continue;
+          seen.add(token);
+          if (tokens.length === MAX_INGREDIENTS) {
+            return scanIngredientTokens(tokens, true, aliasIndex);
+          }
+          tokens.push(token);
+        }
+        return scanIngredientTokens(tokens, false, aliasIndex);
       }
 
       function parseDate(value) {
@@ -7338,9 +7365,9 @@
       function resolveProductSnapshot(snapshot, currentDate, ingredientRules, categoryRules) {
         const stale = isSnapshotStale(snapshot, currentDate);
         const rules = Array.isArray(ingredientRules) ? ingredientRules : [];
-        const ingredientScan = scanIngredientList(
-          Array.isArray(snapshot?.ingredients) ? snapshot.ingredients.join(",") : "",
-          buildIngredientAliasIndex(rules),
+        const ingredientScan = scanIngredientArray(
+          snapshot?.ingredients,
+          buildIngredientAliasIndex(rules, { categoryRuleId: snapshot?.categoryRuleId }),
         );
         const matchedRuleIds = new Set(ingredientScan.matches.map(({ ruleId }) => ruleId));
         const matchedRules = rules.filter(({ id }) => matchedRuleIds.has(id));
@@ -7368,6 +7395,7 @@
         findProductSnapshot,
         matchIngredient,
         scanIngredientList,
+        scanIngredientArray,
         deriveOverallStatus,
         isSnapshotStale,
         resolveProductSnapshot

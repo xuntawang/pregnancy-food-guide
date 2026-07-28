@@ -1,9 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { loadPersonalCareEngine, readIndexHtml } from "./helpers/load-site.mjs";
+import {
+  extractJsonScript,
+  loadPersonalCareEngine,
+  readIndexHtml,
+} from "./helpers/load-site.mjs";
 
-const engine = () => loadPersonalCareEngine(readIndexHtml());
+const html = readIndexHtml();
+const engine = () => loadPersonalCareEngine(html);
+const products = extractJsonScript(html, "personal-care-products");
+const ingredientRules = extractJsonScript(html, "personal-care-ingredients");
+const categoryRules = extractJsonScript(html, "personal-care-procedures");
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
 test("规范化名称统一宽字符、大小写、空白与中英文括号", () => {
@@ -116,6 +124,108 @@ test("商品结论只由成分规则、类别规则和时效动态计算并分�
   assert.equal(
     resolveProductSnapshot(snapshot, "2026-07-28", ingredientRules, categoryRules).medicalSourceIds.includes(snapshot.formulaSourceUrl),
     false,
+  );
+});
+
+test("商品成分数组把含逗号 INCI 作为单个法定名称精确匹配", () => {
+  const { resolveProductSnapshot } = engine();
+  const snapshot = products.find(({ id }) => id === "eucerin-sensitive-mineral-sunscreen-spf50-us-spl-v5");
+  const exactRule = {
+    id: "hexanediol-exact-fixture",
+    names: { zh: [], en: [], inci: ["1,2-Hexanediol"], aliases: [] },
+    status: "consult",
+    sourceIds: ["medical-hexanediol-fixture"],
+  };
+
+  const result = resolveProductSnapshot(snapshot, "2026-07-28", [exactRule], categoryRules);
+
+  assert.ok(result.ingredientScan.tokens.includes("1,2-hexanediol"));
+  assert.deepEqual(
+    plain(result.ingredientScan.matches.filter(({ ruleId }) => ruleId === exactRule.id)),
+    [{ token: "1,2-hexanediol", ruleId: exactRule.id, status: "consult" }],
+  );
+});
+
+test("场景限定成分规则只在匹配商品类别中生效，未知类别保守为未解析", () => {
+  const {
+    buildIngredientAliasIndex,
+    resolveProductSnapshot,
+    scanIngredientList,
+  } = engine();
+  const depilatoryRule = ingredientRules.find(({ id }) => id === "depilatory-alkalis");
+  const unrelatedProductIds = [
+    "eucerin-advanced-hydration-face-sunscreen-spf50-us-spl-v2",
+    "cerave-acne-foaming-cream-cleanser-us-spl-v3",
+    "selsun-blue-itchy-dry-scalp-us-spl-v15",
+  ];
+
+  for (const productId of unrelatedProductIds) {
+    const snapshot = products.find(({ id }) => id === productId);
+    const result = resolveProductSnapshot(snapshot, "2026-07-28", ingredientRules, categoryRules);
+    assert.equal(
+      result.ingredientScan.matches.some(({ ruleId }) => ruleId === depilatoryRule.id),
+      false,
+      `${productId} 不应触发脱毛膏碱剂规则`,
+    );
+  }
+
+  const scopedRules = new Map(
+    ingredientRules
+      .filter(({ applicableProcedureIds }) => Array.isArray(applicableProcedureIds))
+      .map((rule) => [rule.id, rule]),
+  );
+  for (const snapshot of products) {
+    const result = resolveProductSnapshot(snapshot, "2026-07-28", ingredientRules, categoryRules);
+    for (const { ruleId } of result.ingredientScan.matches) {
+      const scopedRule = scopedRules.get(ruleId);
+      if (!scopedRule) continue;
+      assert.ok(
+        scopedRule.applicableProcedureIds.includes(snapshot.categoryRuleId),
+        `${snapshot.id} 命中了不适用当前类别的 ${ruleId}`,
+      );
+    }
+  }
+
+  const unknownContext = scanIngredientList(
+    "Potassium Hydroxide",
+    buildIngredientAliasIndex(ingredientRules),
+  );
+  assert.deepEqual(plain(unknownContext), {
+    tokens: ["potassium hydroxide"],
+    matches: [],
+    unresolved: ["potassium hydroxide"],
+    truncated: false,
+    overallStatus: "consult",
+  });
+
+  const sunscreenContext = resolveProductSnapshot(
+    {
+      id: "sunscreen-context-fixture",
+      categoryRuleId: "sunscreen-use",
+      formulaReviewed: "2026-07-28",
+      ingredients: ["Potassium Hydroxide"],
+    },
+    "2026-07-28",
+    ingredientRules,
+    [{ id: "sunscreen-use", status: "limit", sourceIds: ["medical-sunscreen-fixture"] }],
+  );
+  assert.deepEqual(plain(sunscreenContext.medicalSourceIds), ["medical-sunscreen-fixture"]);
+
+  const depilatorySnapshot = {
+    id: "depilatory-context-fixture",
+    categoryRuleId: "depilatory-cream",
+    formulaReviewed: "2026-07-28",
+    ingredients: ["Potassium Hydroxide"],
+  };
+  const depilatoryResult = resolveProductSnapshot(
+    depilatorySnapshot,
+    "2026-07-28",
+    ingredientRules,
+    categoryRules,
+  );
+  assert.deepEqual(
+    plain(depilatoryResult.ingredientScan.matches),
+    [{ token: "potassium hydroxide", ruleId: "depilatory-alkalis", status: "limit" }],
   );
 });
 
