@@ -61,22 +61,73 @@ test("组合结论采用固定风险优先级", () => {
   assert.equal(deriveOverallStatus(["limit", "avoid"]), "avoid");
 });
 
-test("商品快照在 365 天内有效，失效或缺少日期时降级", () => {
+test("常见商品别名精确找到对应快照且冲突别名被拒绝", () => {
+  const { buildProductAliasIndex, findProductSnapshot } = engine();
+  const products = [
+    { id: "cerave-cleanser-us-v1", brand: "CeraVe", name: "Hydrating Facial Cleanser", aliases: ["适乐肤氨基酸洁面"] },
+    { id: "differin-gel-us-v1", brand: "Differin", name: "Differin Gel 0.1% Adapalene", aliases: ["达芙文凝胶"] },
+  ];
+  const index = buildProductAliasIndex(products);
+
+  assert.equal(findProductSnapshot("适乐肤氨基酸洁面", index)?.id, "cerave-cleanser-us-v1");
+  assert.equal(findProductSnapshot(" DIFFERIN   GEL 0.1% ADAPALENE ", index)?.id, "differin-gel-us-v1");
+  assert.equal(findProductSnapshot("凝胶", index), null);
+  assert.throws(
+    () => buildProductAliasIndex([...products, { id: "collision", name: "Other", aliases: ["达芙文凝胶"] }]),
+    /别名冲突/,
+  );
+});
+
+test("商品结论只由成分规则、类别规则和时效动态计算并分离配方来源", () => {
+  const { resolveProductSnapshot } = engine();
+  const snapshot = {
+    id: "retinol-serum-us-v1",
+    formulaReviewed: "2026-07-28",
+    formulaSourceUrl: "https://brand.example/formula",
+    categoryRuleId: "anti-aging-care",
+    ingredients: ["Water", "Retinol", "Mystery Extract"],
+  };
+  const ingredientRules = [{
+    id: "retinol",
+    names: { zh: ["维A醇"], en: ["Retinol"], inci: ["Retinol"], aliases: [] },
+    status: "avoid",
+    sourceIds: ["medical-retinol"],
+  }];
+  const categoryRules = [{
+    id: "anti-aging-care",
+    status: "consult",
+    sourceIds: ["medical-anti-aging"],
+  }];
+
+  assert.deepEqual(plain(resolveProductSnapshot(snapshot, "2026-07-28", ingredientRules, categoryRules)), {
+    snapshot,
+    stale: false,
+    ingredientScan: {
+      tokens: ["water", "retinol", "mystery extract"],
+      matches: [{ token: "retinol", ruleId: "retinol", status: "avoid" }],
+      unresolved: ["water", "mystery extract"],
+      truncated: false,
+      overallStatus: "avoid",
+    },
+    categoryRule: { id: "anti-aging-care", status: "consult" },
+    medicalSourceIds: ["medical-retinol", "medical-anti-aging"],
+    overallStatus: "avoid",
+  });
+  assert.equal(
+    resolveProductSnapshot(snapshot, "2026-07-28", ingredientRules, categoryRules).medicalSourceIds.includes(snapshot.formulaSourceUrl),
+    false,
+  );
+});
+
+test("商品快照在 365 天内有效，超过 365 天或缺少日期时降级", () => {
   const { isSnapshotStale, resolveProductSnapshot } = engine();
   const today = "2026-07-28";
-  const current = { id: "current", checkedAt: "2025-07-28", categoryStatus: "safe", ingredientStatuses: ["safe"] };
-  const stale = { id: "stale", checkedAt: "2025-07-27", categoryStatus: "safe", ingredientStatuses: ["safe"] };
+  const current = { id: "current", formulaReviewed: "2025-07-28", ingredients: [] };
+  const stale = { id: "stale", formulaReviewed: "2025-07-27", ingredients: [] };
 
   assert.equal(isSnapshotStale(current, today), false);
   assert.equal(isSnapshotStale(stale, today), true);
   assert.equal(isSnapshotStale({}, today), true);
-  assert.equal(isSnapshotStale({ checkedAt: "not-a-date" }, today), true);
-  assert.deepEqual(plain(resolveProductSnapshot(stale, today)), { snapshot: stale, stale: true, overallStatus: "consult" });
-  assert.equal(resolveProductSnapshot({ ...stale, ingredientStatuses: ["avoid"] }, today).overallStatus, "avoid");
-  assert.equal(resolveProductSnapshot({ ...stale, categoryStatus: "avoid" }, today).overallStatus, "avoid");
-  assert.deepEqual(plain(resolveProductSnapshot({ ...current, categoryStatus: "limit", ingredientStatuses: ["safe", "consult"] }, today)), {
-    snapshot: { ...current, categoryStatus: "limit", ingredientStatuses: ["safe", "consult"] },
-    stale: false,
-    overallStatus: "limit",
-  });
+  assert.equal(isSnapshotStale({ formulaReviewed: "not-a-date" }, today), true);
+  assert.equal(resolveProductSnapshot(stale, today, [], []).overallStatus, "consult");
 });

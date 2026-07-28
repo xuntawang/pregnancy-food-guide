@@ -7,6 +7,7 @@ const html = readIndexHtml();
 const sources = extractJsonScript(html, "personal-care-sources");
 const ingredients = extractJsonScript(html, "personal-care-ingredients");
 const procedures = extractJsonScript(html, "personal-care-procedures");
+const products = extractJsonScript(html, "personal-care-products");
 const sourceIds = new Set(sources.map(({ id }) => id));
 const sourceById = new Map(sources.map((source) => [source.id, source]));
 const validStatuses = new Set(["safe", "limit", "avoid", "consult"]);
@@ -487,4 +488,63 @@ test("项目条件区分暴露途径、消费者与职业暴露及操作相关�
   }
   assert.match(rulesById.get("depilatory-cream")?.conditions?.route ?? "", /冲洗/, "脱毛膏未标明冲洗型使用");
   assert.match(rulesById.get("body-lotion")?.conditions?.route ?? "", /驻留/, "身体乳未标明驻留型使用");
+});
+
+test("至少 30 个商品快照具有地区、版本、完整配方来源且不保存孕期结论", () => {
+  const forbiddenConclusionFields = [
+    "status", "overallStatus", "pregnancyStatus", "categoryStatus", "ingredientStatuses",
+  ];
+
+  assert.ok(products.length >= 30, `商品快照不足 30 个：${products.length}`);
+  assert.equal(new Set(products.map(({ id }) => id)).size, products.length, "商品 ID 必须唯一");
+
+  for (const product of products) {
+    assert.match(product.id, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, `${product.id} 的 ID 格式无效`);
+    assert.ok(product.brand?.trim(), `${product.id} 缺少品牌`);
+    assert.ok(product.name?.trim(), `${product.id} 缺少包装完整商品名`);
+    assert.ok(Array.isArray(product.aliases) && product.aliases.length > 0, `${product.id} 缺少常用别名`);
+    assert.ok(product.aliases.every((alias) => alias.trim()), `${product.id} 包含空别名`);
+    assert.ok(product.category?.trim(), `${product.id} 缺少商品类别`);
+    assert.ok(product.categoryRuleId?.trim(), `${product.id} 缺少类别规则关联`);
+    assert.ok(procedures.some(({ id }) => id === product.categoryRuleId), `${product.id} 关联不存在的类别规则`);
+    assert.ok(product.formulaRegion?.trim(), `${product.id} 缺少配方地区`);
+    assert.ok(product.formulaVersion?.trim(), `${product.id} 缺少配方版本`);
+    assert.equal(product.formulaReviewed, "2026-07-28", `${product.id} 的配方复核日期不正确`);
+    assert.match(product.formulaSourceUrl, /^https:\/\/[^\s]+$/, `${product.id} 缺少直接 HTTPS 配方来源`);
+    assert.ok(Array.isArray(product.ingredients) && product.ingredients.length > 0, `${product.id} 缺少完整成分数组`);
+    assert.ok(product.ingredients.every((ingredient) => ingredient.trim()), `${product.id} 包含空成分`);
+    assert.ok(Array.isArray(product.notes) && product.notes.length > 0, `${product.id} 缺少版本提示`);
+    assert.match(product.notes.join(" "), /包装|标签/, `${product.id} 未提醒对照当前包装或标签`);
+    for (const field of forbiddenConclusionFields) {
+      assert.equal(Object.hasOwn(product, field), false, `${product.id} 不得保存独立孕期结论字段 ${field}`);
+    }
+  }
+});
+
+test("首发商品覆盖六类最低配额", () => {
+  const quotas = new Map([
+    ["洁面或保湿", { categories: new Set(["洁面", "保湿"]), minimum: 6 }],
+    ["防晒", { categories: new Set(["防晒"]), minimum: 6 }],
+    ["祛痘淡斑抗老", { categories: new Set(["祛痘", "淡斑", "抗老"]), minimum: 8 }],
+    ["洗发或去屑", { categories: new Set(["洗发", "去屑"]), minimum: 4 }],
+    ["口腔护理", { categories: new Set(["口腔护理"]), minimum: 3 }],
+    ["身体止汗美甲造型", { categories: new Set(["身体护理", "止汗", "美甲", "头发造型"]), minimum: 3 }],
+  ]);
+
+  for (const [label, { categories, minimum }] of quotas) {
+    const count = products.filter(({ category }) => categories.has(category)).length;
+    assert.ok(count >= minimum, `${label} 商品不足 ${minimum} 个：${count}`);
+  }
+});
+
+test("商品完整名称和普通搜索别名规范化后不冲突", () => {
+  const claimed = new Map();
+  for (const product of products) {
+    for (const rawAlias of [product.name, ...product.aliases]) {
+      const alias = normalizeAlias(rawAlias);
+      assert.ok(alias, `${product.id} 包含空搜索名称`);
+      assert.equal(claimed.has(alias), false, `商品搜索名称“${rawAlias}”同时属于 ${claimed.get(alias)} 和 ${product.id}`);
+      claimed.set(alias, product.id);
+    }
+  }
 });
