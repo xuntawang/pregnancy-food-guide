@@ -6,6 +6,7 @@ import { extractJsonScript, readIndexHtml } from "./helpers/load-site.mjs";
 const html = readIndexHtml();
 const sources = extractJsonScript(html, "personal-care-sources");
 const ingredients = extractJsonScript(html, "personal-care-ingredients");
+const procedures = extractJsonScript(html, "personal-care-procedures");
 const sourceIds = new Set(sources.map(({ id }) => id));
 const sourceById = new Map(sources.map((source) => [source.id, source]));
 const validStatuses = new Set(["safe", "limit", "avoid", "consult"]);
@@ -240,4 +241,109 @@ test("规则覆盖任务要求的主要成分和场景", () => {
   ];
   const ids = new Set(ingredients.map(({ id }) => id));
   for (const id of requiredIds) assert.ok(ids.has(id), `缺少规则：${id}`);
+});
+
+test("至少 40 条商品类别与美容项目规则满足完整数据契约", () => {
+  assert.ok(procedures.length >= 40, `项目规则不足 40 条：${procedures.length}`);
+  assert.equal(new Set(procedures.map(({ id }) => id)).size, procedures.length, "项目规则 ID 必须唯一");
+
+  for (const rule of procedures) {
+    assert.match(rule.id, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, `${rule.id} 的 ID 格式无效`);
+    assert.ok(rule.name?.trim(), `${rule.id} 缺少名称`);
+    assert.ok(Array.isArray(rule.aliases) && rule.aliases.length > 0, `${rule.id} 缺少别名`);
+    assert.ok(rule.aliases.every((alias) => alias.trim()), `${rule.id} 包含空别名`);
+    assert.ok(rule.category?.trim(), `${rule.id} 缺少分类`);
+    assert.ok(validStatuses.has(rule.status), `${rule.id} 状态无效`);
+    assert.ok(rule.summary?.trim(), `${rule.id} 缺少简短结论`);
+    assert.ok(rule.rationale?.trim(), `${rule.id} 缺少理由`);
+    assert.ok(rule.conditions && Object.values(rule.conditions).some((value) => value.trim()), `${rule.id} 缺少使用条件`);
+    assert.ok(Array.isArray(rule.alternatives), `${rule.id} 替代方案必须是数组`);
+    assert.ok(Array.isArray(rule.sourceIds) && rule.sourceIds.length > 0, `${rule.id} 缺少来源引用`);
+    assert.ok(validDate(rule.reviewed), `${rule.id} 的复核日期无效`);
+    assert.equal(rule.reviewed, "2026-07-28", `${rule.id} 应使用本次复核日期`);
+    for (const sourceId of rule.sourceIds) {
+      assert.ok(sourceIds.has(sourceId), `${rule.id} 引用了不存在的来源 ${sourceId}`);
+    }
+  }
+});
+
+test("项目规则覆盖任务 4 的全部指定场景", () => {
+  const requiredIds = [
+    "facial-cleansing", "facial-moisturizing", "sunscreen-use", "facial-mask", "makeup",
+    "makeup-removal", "acne-care", "brightening-care", "anti-aging-care",
+    "shampooing", "hair-conditioning", "dandruff-care", "hair-dye", "hair-bleaching",
+    "hair-perming", "chemical-straightening", "hair-styling-spray", "dry-shampoo-spray", "topical-minoxidil",
+    "fluoride-toothpaste", "mouthwash", "teeth-whitening", "antiperspirant", "body-lotion",
+    "intimate-wash", "depilatory-cream", "self-tanning-lotion",
+    "regular-nail-polish", "gel-manicure", "nail-extensions", "nail-polish-removal",
+    "press-on-nail-glue", "eyelash-extensions", "lash-lift",
+    "comedone-extraction", "superficial-chemical-peel", "deep-chemical-peel", "steam-sauna",
+    "hot-bath", "prenatal-massage", "aromatherapy", "spray-tanning",
+    "botulinum-toxin", "dermal-fillers", "microneedling", "radiofrequency-treatment",
+    "focused-ultrasound-lift", "intense-pulsed-light", "pigment-laser", "ablative-laser",
+    "laser-hair-removal", "skin-booster-injection", "mesotherapy",
+  ];
+  const ids = new Set(procedures.map(({ id }) => id));
+  for (const id of requiredIds) assert.ok(ids.has(id), `缺少项目规则：${id}`);
+});
+
+test("项目状态结论不强于其孕期证据", () => {
+  for (const rule of procedures) {
+    const evidence = rule.sourceIds.map((sourceId) => sourceById.get(sourceId));
+    if (rule.status === "safe") {
+      assert.ok(
+        evidence.some(({ evidenceType }) => safeEvidenceTypes.has(evidenceType)),
+        `${rule.id} 的 safe 结论缺少直接孕期医学证据`,
+      );
+    }
+    if (["limit", "avoid"].includes(rule.status)) {
+      assert.ok(
+        evidence.some(({ evidenceType }) => directPregnancyEvidenceTypes.has(evidenceType)),
+        `${rule.id} 的 ${rule.status} 结论只有一般监管或配方资料`,
+      );
+    }
+    if (rule.status === "consult") {
+      assert.ok(
+        evidence.some(({ evidenceType }) => directPregnancyEvidenceTypes.has(evidenceType))
+          || evidence.some(({ evidenceType, searchDetails }) => evidenceType === "search-gap"
+            && searchDetails?.finding?.trim()),
+        `${rule.id} 的 consult 结论缺少孕期医学资料或可核验检索缺口`,
+      );
+    }
+  }
+});
+
+test("选择性注射、破皮与能量医美在无直接孕期安全证据时先咨询并建议暂缓", () => {
+  const rulesById = new Map(procedures.map((rule) => [rule.id, rule]));
+  const electiveProcedures = [
+    "botulinum-toxin", "dermal-fillers", "microneedling", "radiofrequency-treatment",
+    "focused-ultrasound-lift", "intense-pulsed-light", "pigment-laser", "ablative-laser",
+    "laser-hair-removal", "skin-booster-injection", "mesotherapy",
+  ];
+  for (const id of electiveProcedures) {
+    const rule = rulesById.get(id);
+    assert.equal(rule?.status, "consult", `${id} 应为 consult`);
+    assert.match(`${rule?.summary} ${rule?.rationale} ${rule?.conditions?.aftercare}`, /暂缓|推迟|延期/, `${id} 未明确建议孕期暂缓`);
+    assert.doesNotMatch(`${rule?.summary} ${rule?.rationale}`, /未发现危害.{0,8}(安全|可用)|没有危害.{0,8}(安全|可用)/, `${id} 把证据缺口误写为安全`);
+  }
+});
+
+test("项目条件区分暴露途径、消费者与职业暴露及操作相关风险", () => {
+  const rulesById = new Map(procedures.map((rule) => [rule.id, rule]));
+  for (const id of ["hair-dye", "regular-nail-polish", "gel-manicure", "nail-extensions"]) {
+    assert.match(rulesById.get(id)?.conditions?.occupational ?? "", /职业|从业|高频/, `${id} 未区分职业高频暴露`);
+  }
+  for (const id of ["hair-styling-spray", "dry-shampoo-spray", "spray-tanning"]) {
+    assert.match(rulesById.get(id)?.conditions?.ventilation ?? "", /吸入|通风|喷雾/, `${id} 未处理吸入风险`);
+  }
+  for (const id of ["microneedling", "skin-booster-injection", "mesotherapy"]) {
+    const conditions = rulesById.get(id)?.conditions ?? {};
+    assert.match(`${conditions.skin} ${conditions.anesthesia} ${conditions.aftercare}`, /破损|针|感染/, `${id} 未处理破皮或感染`);
+    assert.match(`${conditions.anesthesia} ${conditions.aftercare}`, /麻醉|用药|抗病毒|抗生素/, `${id} 未处理麻醉或术后用药`);
+  }
+  for (const id of ["steam-sauna", "hot-bath", "radiofrequency-treatment", "focused-ultrasound-lift"]) {
+    assert.match(rulesById.get(id)?.conditions?.heat ?? "", /热|温度|体温/, `${id} 未处理热暴露`);
+  }
+  assert.match(rulesById.get("depilatory-cream")?.conditions?.route ?? "", /冲洗/, "脱毛膏未标明冲洗型使用");
+  assert.match(rulesById.get("body-lotion")?.conditions?.route ?? "", /驻留/, "身体乳未标明驻留型使用");
 });
