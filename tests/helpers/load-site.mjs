@@ -3,6 +3,12 @@ import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 
 const indexHtmlUrl = new URL("../../index.html", import.meta.url);
+const javaScriptMimeTypes = new Set([
+  "application/ecmascript",
+  "application/javascript",
+  "text/ecmascript",
+  "text/javascript",
+]);
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -19,6 +25,11 @@ function findScripts(html, id) {
   return [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
     .filter((match) => getAttribute(match[1], "id") === id)
     .map((match) => ({ attributes: match[1], content: match[2] }));
+}
+
+function isExecutableJavaScript(attributes) {
+  const type = getAttribute(attributes, "type");
+  return type === undefined || javaScriptMimeTypes.has(type.trim().toLowerCase());
 }
 
 export function readIndexHtml() {
@@ -41,12 +52,18 @@ export function extractJsonScript(html, id) {
 }
 
 export function extractScript(html, id) {
-  const scripts = findScripts(html, id).filter(
-    ({ attributes }) => getAttribute(attributes, "type")?.toLowerCase() !== "application/json",
-  );
+  const scripts = findScripts(html, id);
 
   if (scripts.length === 0) {
     throw new Error(`未找到 ID 为 \"${id}\" 的可执行脚本`);
+  }
+
+  const invalidScripts = scripts.filter(({ attributes }) => !isExecutableJavaScript(attributes));
+  if (invalidScripts.length > 0) {
+    if (scripts.length > 1) {
+      throw new Error(`ID 为 \"${id}\" 的脚本包含非可执行脚本`);
+    }
+    throw new Error(`ID 为 \"${id}\" 的脚本不是可执行 JavaScript 脚本`);
   }
   if (scripts.length > 1) {
     throw new Error(`找到多个 ID 为 \"${id}\" 的可执行脚本`);
